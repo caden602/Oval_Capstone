@@ -1,0 +1,15 @@
+# Enclosed is a tutorial on configuring your VSCode IDE for use with Arduino
+
+Steps:
+1. Download and Install VSCode
+2. Navigate to the "Extensions" tab and search for "platformio"
+3. Install PlatformIo and restart VSCodex 
+4. A Bug Icon for PlatformIo should now be visible in your tool-bar. Click on it and click "Create New Project"
+5. Inside of the "PIO Home" window, underneath the "Quick Access" menu, select "+ New Project"
+6. Once the new project window appears, name your project, select your board, and set the framework to Arduino. Uncheck the "Use default location" box
+  and select your desired file destination folder
+7. To edit/write Arduino code, navigate to the "/src" folder within your editor
+8. To compile your code, click the small check-mark icon on the bottom left of your VSCode IDE
+9. To upload your code, click on the small arrow icon on the bottom left of your VSCode IDE (next to the check-mark)
+
+For any lingering questions, consult this YouTube video: https://www.youtube.com/watch?v=gQ2lsSuXvVU
