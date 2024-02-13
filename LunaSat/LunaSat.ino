@@ -8,19 +8,24 @@ Adafruit_BME680 bme; // I2C
 ADXL313 adxl;
 Adafruit_LIS3MDL lis3mdl;
 
-int count = 0;
 package_t package;
 
 void setup() {
+
+  // Initalize the pinmode for RF
+  /*
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
   //attachInterrupt(digitalPinToInterrupt(RFM95_INT), isr, CHANGE);
+  //*/
 
   Serial.begin(115200);
   while (!Serial) delay(1);
   delay(100);
 
+  // Initalization of LoRa
+  /*
   Serial.println("Feather LoRa RX Test!");
 
   // manual reset
@@ -28,7 +33,6 @@ void setup() {
   delay(10);
   digitalWrite(RFM95_RST, HIGH);
   delay(10);
-
   while (!rf95.init()) {
     Serial.println("LoRa radio init failed");
     Serial.println("Uncomment '#define SERIAL_DEBUG' in RH_RF95.cpp for detailed debug info");
@@ -42,37 +46,47 @@ void setup() {
     while (1);
   }
   Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
-
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-
-  // The default transmitter power is 13dBm, using PA_BOOST.
-  // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
-  // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
-  Wire.begin();
+  //*/
 
 
-  //tmp117_setup(&tmp117);
-  Serial.println("TEST1");
-  //bme_setup(&bme);
-  //adxl_setup(&adxl);
+  Serial.println("Beginning setup");
+  delay(100);
+  tmp117_setup(&tmp117);
+
+  delay(100);
   lis3mdl_setup(&lis3mdl);
+
+  delay(100);
+  bme_setup(&bme);
+
+  delay(100);
+  adxl_setup(&adxl);
+
+  Serial.println("All Sensors Good!");
 
 }
 
 void loop() {
-  count ++;
-  if(count == 1000){
+  // Get sensor data
 
-    // Get sensor data
-    //package.temp_data = tmp117_get_temp(&tmp117);
-    //package.adxl_data = adxl_get_data(&adxl);
-    //package.bme_data = bme_get_data(&bme);
-    
-    Serial.println("TEST");
+  //package.temp_data = tmp117_get_temp(&tmp117);
+  //Serial.println(package.temp_data);
+  //*
+  delay(1000);
+  Serial.println("Sampling BME688");
+  package.bme_data = bme_get_data(&bme);
+  delay(1000);
+  Serial.println("Sampling ADXL313");
+  package.adxl_data = adxl_get_data(&adxl);
+  delay(1000);
+  Serial.println("Sampling LIS3MDL");
+  lis3mdl_get_data(&lis3mdl);
+  delay(1000);
+  //*/
 
-  }
 
+  /*
   if (rf95.available()) {
     // Should be a message for us now
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
@@ -107,10 +121,10 @@ void loop() {
     }
     Serial.println();
   }
-
+  //*/
 }
 
-
+// Function is not setup yet, but can be linked as an ISR
 void isr(){
-  Serial.println("TES");
+  Serial.println("TEST ISR");
 }
