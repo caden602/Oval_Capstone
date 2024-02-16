@@ -4,6 +4,7 @@
 #include "Sensors/BME688.h"
 #include "Sensors/ADXL313.h"
 #include "Sensors/LIS3MDL.h"
+#include "Sensors/MMC5603.h"
 
 #define RFM95_CS    4
 #define RFM95_INT   3

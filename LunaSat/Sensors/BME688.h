@@ -51,22 +51,19 @@ void bme_setup(Adafruit_BME680 *bme) {
   bme->setGasHeater(320, 150); // 320*C for 150 ms
 }
 
-bme_data_t bme_get_data(Adafruit_BME680 *bme) {
-    bme_data_t bme_data;
-    bme_data.error = 0;
+void bme_get_data(Adafruit_BME680 *bme, bme_data_t *bme_data) {
+    bme_data->error = 0;
 
     // Perform Reading and check for error
     if (! bme->performReading()) {
         Serial.println("Failed to perform reading on BME688");
 
         // set the error bit to 1
-        bme_data.error = 1;
-        return bme_data;
+        bme_data->error = 1;
     }
-    bme_data.temperature = bme->temperature;
-    bme_data.pressure = bme->pressure / 100.0;
-    bme_data.humidity = bme->humidity;
-    bme_data.gas_resistance = bme->gas_resistance / 1000.0;
+    bme_data->temperature = bme->temperature;
+    bme_data->pressure = bme->pressure / 100.0;
+    bme_data->humidity = bme->humidity;
+    bme_data->gas_resistance = bme->gas_resistance / 1000.0;
 
-    return bme_data;
 }

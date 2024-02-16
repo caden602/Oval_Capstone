@@ -62,22 +62,20 @@ void adxl_setup(ADXL313 *myAdxl)
     myAdxl->measureModeOn(); // wakes up the sensor from standby and puts it into measurement mode
 }
 
-adxl_data_t adxl_get_data(ADXL313 *myAdxl)
+void adxl_get_data(ADXL313 *myAdxl, adxl_data_t*adxl_data)
 {
-    adxl_data_t adxl_data;
-    adxl_data.error = 1;
+    adxl_data->error = 1;
     if(myAdxl->dataReady()) // check data ready interrupt, note, this clears all other int bits in INT_SOURCE reg
     {
         myAdxl->readAccel(); // read all 3 axis, they are stored in class variables: myAdxl.x, myAdxl.y and myAdxl.z
-        adxl_data.x = myAdxl->x;
-        adxl_data.y = myAdxl->y;
-        adxl_data.z = myAdxl->z;
+        adxl_data->x = myAdxl->x;
+        adxl_data->y = myAdxl->y;
+        adxl_data->z = myAdxl->z;
 
         // set error bit to 0 (false)
-        adxl_data.error = 0;
+        adxl_data->error = 0;
     }
 
 
-    return adxl_data;
 
 }

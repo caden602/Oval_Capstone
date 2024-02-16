@@ -7,6 +7,7 @@ Adafruit_TMP117 tmp117;
 Adafruit_BME680 bme; // I2C
 ADXL313 adxl;
 Adafruit_LIS3MDL lis3mdl;
+Adafruit_MMC5603 mmc = Adafruit_MMC5603(12345);
 
 package_t package;
 
@@ -51,38 +52,57 @@ void setup() {
 
 
   Serial.println("Beginning setup");
-  delay(100);
+
+  //lis3mdl_setup(&lis3mdl);
+
   tmp117_setup(&tmp117);
-
   delay(100);
-  lis3mdl_setup(&lis3mdl);
 
-  delay(100);
   bme_setup(&bme);
-
   delay(100);
+
+  //mmc_setup(&mmc);
+  delay(100);
+
   adxl_setup(&adxl);
 
+
+
   Serial.println("All Sensors Good!");
+
+  delay(5000);
+
+  Serial.println("Setup Complete skeeyee!");
 
 }
 
 void loop() {
   // Get sensor data
 
-  //package.temp_data = tmp117_get_temp(&tmp117);
-  //Serial.println(package.temp_data);
-  //*
-  delay(1000);
+
+  Serial.println("Start of loop");
+  float temp;
+  temp = tmp117_get_temp(&tmp117);
+  Serial.println(temp);
+
+
   Serial.println("Sampling BME688");
-  package.bme_data = bme_get_data(&bme);
-  delay(1000);
+  bme_data_t bme_data;
+  bme_get_data(&bme, &bme_data);
+  Serial.print("BME DATA: ");
+  Serial.print(bme_data.humidity);
+  Serial.println(bme_data.pressure);
+
   Serial.println("Sampling ADXL313");
-  package.adxl_data = adxl_get_data(&adxl);
-  delay(1000);
+  adxl_data_t adxl_data;
+  adxl_get_data(&adxl, &adxl_data);
+  Serial.print("ADXL DATA: ");
+  Serial.println(adxl_data.error);
+
   Serial.println("Sampling LIS3MDL");
   lis3mdl_get_data(&lis3mdl);
-  delay(1000);
+  
+  delay(2000);
   //*/
 
 
