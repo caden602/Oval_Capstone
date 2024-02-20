@@ -16,7 +16,7 @@
 
 
 typedef struct{
-    float temp_data;        // 4  bytes 
-    bme_data_t bme_data;    // 17 bytes
-    adxl_data_t adxl_data;  // 7  bytes
-}package_t;                 // total = 28 bytes
+    bme_data_t bme_data;                        // 17 bytes
+    adxl_data_t adxl_data;                      // 7  bytes
+    lis3mdl_data_t lis3mdl_data;
+}package_t;                                     // total = 28 bytes

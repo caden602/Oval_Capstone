@@ -1,6 +1,12 @@
 #include <Adafruit_MMC56x3.h>
 
 
+typedef struct{
+    float x;
+    float y;
+    float z;
+} mmc_data_t;
+
 void mmc_setup(Adafruit_MMC5603* mmc) {
   /* Initialise the sensor */
   if (!mmc->begin(MMC56X3_DEFAULT_ADDRESS, &Wire)) {  // I2C mode
@@ -33,9 +39,10 @@ void mmc_get_data(Adafruit_MMC5603* mmc) {
   Serial.print("  ");
   Serial.println("uT");
 
-  // Read and display temperature
-  float temp_c = mmc->readTemperature();
-  Serial.print("Temp: "); Serial.print(temp_c); Serial.println(" *C");
+
+  // TODO: FIGURE OUT WHAT MAG SENSOR DATA WE WANT
+  // the event provided is 36 bytes (might be overkill size wise)
+
   // Delay before the next sample
   delay(100);
 }

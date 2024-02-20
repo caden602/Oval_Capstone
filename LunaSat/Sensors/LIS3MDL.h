@@ -10,6 +10,13 @@
 #define LIS3MDL_MOSI 11
 #define LIS3MDL_CS 10
 
+typedef struct{
+    int16_t x;          // 16 bits -> 2 bytes
+    int16_t y;          // 16 bits -> 2 bytes
+    int16_t z;          // 16 bits -> 2 bytes
+    uint8_t error = 1;  // 8 bits  -> 1 byte
+} lis3mdl_data_t;          // total   -> 7 bytes
+
 void lis3mdl_setup(Adafruit_LIS3MDL *lis3mdl) {
   Serial.begin(115200);
   while (!Serial) delay(10);     // will pause Zero, Leonardo, etc until serial console opens
@@ -77,22 +84,26 @@ void lis3mdl_setup(Adafruit_LIS3MDL *lis3mdl) {
                           true); // enabled!
 }
 
-void lis3mdl_get_data(Adafruit_LIS3MDL *lis3mdl) {
+void lis3mdl_get_data(Adafruit_LIS3MDL *lis3mdl, lis3mdl_data_t* lis3mdl_data) {
   lis3mdl->read();      // get X Y and Z data at once
-  // Then print out the raw data
-  Serial.print("\nX:  "); Serial.print(lis3mdl->x); 
-  Serial.print("  \tY:  "); Serial.print(lis3mdl->y); 
-  Serial.print("  \tZ:  "); Serial.println(lis3mdl->z); 
 
-  /* Or....get a new sensor event, normalized to uTesla */
-  sensors_event_t event; 
-  lis3mdl->getEvent(&event);
-  /* Display the results (magnetic field is measured in uTesla) */
-  Serial.print("\tX: "); Serial.print(event.magnetic.x);
-  Serial.print(" \tY: "); Serial.print(event.magnetic.y); 
-  Serial.print(" \tZ: "); Serial.print(event.magnetic.z); 
-  Serial.println(" uTesla ");
+  // /*
+  // // Then print out the raw data
+  // Serial.print("\nX:  "); Serial.print(lis3mdl->x); 
+  // Serial.print("  \tY:  "); Serial.print(lis3mdl->y); 
+  // Serial.print("  \tZ:  "); Serial.println(lis3mdl->z); 
+  // */
 
-  delay(100); 
-  Serial.println();
+  // /* Or....get a new sensor event, normalized to uTesla */
+  // sensors_event_t event; 
+  // lis3mdl->getEvent(&event);
+  // /* Display the results (magnetic field is measured in uTesla) */
+  // Serial.print("\tX: "); Serial.print(event.magnetic.x);
+  // Serial.print(" \tY: "); Serial.print(event.magnetic.y); 
+  // Serial.print(" \tZ: "); Serial.print(event.magnetic.z); 
+  // Serial.println(" uTesla ");
+
+  lis3mdl_data->x = lis3mdl->x;
+  lis3mdl_data->y = lis3mdl->y;
+  lis3mdl_data->z = lis3mdl->z;
 }
