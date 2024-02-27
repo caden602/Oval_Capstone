@@ -17,7 +17,7 @@ void setup() {
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
-  Serial.begin(115200);
+  Serial.begin(9600); //115200
   while (!Serial) delay(1);
   delay(100);
 
@@ -167,6 +167,7 @@ void loop() {
   
   //*/
   }
+  Serial.println();
 }
 
 // Function is not setup yet, but can be linked as an ISR
