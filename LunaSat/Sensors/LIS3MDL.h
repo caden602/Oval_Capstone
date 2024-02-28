@@ -14,7 +14,7 @@ typedef struct{
     int16_t x;          // 16 bits -> 2 bytes
     int16_t y;          // 16 bits -> 2 bytes
     int16_t z;          // 16 bits -> 2 bytes
-    uint8_t error = 1;  // 8 bits  -> 1 byte
+    uint8_t error : 1;  // 8 bits  -> 1 byte
 } lis3mdl_data_t;          // total   -> 7 bytes
 
 void lis3mdl_setup(Adafruit_LIS3MDL *lis3mdl) {

@@ -1,33 +1,36 @@
 #include "LunaSat.h"
 
-// Singleton instance of the radio driver
+// Define instance of LoRa
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-Adafruit_TMP117 tmp117;
-Adafruit_BME680 bme; // I2C
+// Define instances of all Sensors
+Adafruit_BME680 bme; 
 ADXL313 adxl;
 Adafruit_LIS3MDL lis3mdl;
-//Adafruit_MMC5603 mmc = Adafruit_MMC5603(12345);
+
 
 package_t package;
 
 void setup() {
 
+  // Pins for LoRa Module
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
+  // Connect to Serial Monitor
   Serial.begin(115200);
   while (!Serial) delay(1);
   delay(100);
 
-  // Serial.println("________________");
 
-  //*
-  // SENSOR Setup
-  // Serial.println("Beginning setup");
+  /* Sensor Setup */
+  Serial.println("Begin Sensor Setup");
 
-  //lis3mdl_setup(&lis3mdl);
+  /* For LIS3MDL, you only need to set it up once. If you try to set it up again 
+     without fulling cutting power to the sensor, you will receive a setup failure. */
+  // lis3mdl_setup(&lis3mdl);
+  // delay(1000);
 
   adxl_setup(&adxl);
   delay(1000);
@@ -35,25 +38,14 @@ void setup() {
   bme_setup(&bme);
   delay(1000);
 
-
   Serial.println("All Sensors Good!");
-  //delay(5000);
-  //while(true);
 
-  Serial.println("Setup Complete skeeyee!");
-
-  //*/
-
-  // Initalize the pinmode for RF
-  //*
   
-  //attachInterrupt(digitalPinToInterrupt(RFM95_INT), isr, CHANGE);
-  
+  attachInterrupt(digitalPinToInterrupt(RFM95_INT), isr, CHANGE);
 
 
-  // Initalization of LoRa
-  //*
-  Serial.println("Feather LoRa RX Test!");
+  /* Initalization of LoRa */ 
+  Serial.println("Begin LoRa Setup!");
 
   // manual reset
   digitalWrite(RFM95_RST, LOW);
@@ -61,40 +53,29 @@ void setup() {
   digitalWrite(RFM95_RST, HIGH);
   delay(10);
   while (!rf95.init()) {
-    Serial.println("LoRa radio init failed");
+    Serial.println("LoRa Setup failed!");
     Serial.println("Uncomment '#define SERIAL_DEBUG' in RH_RF95.cpp for detailed debug info");
     while (1);
   }
-  Serial.println("LoRa radio init OK!");
 
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
     while (1);
   }
-  Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
-  rf95.setTxPower(23, false);
-  //*/
-  
+  // Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
 
-  //delay(5000);
+  Serial.println("LoRa Setup Successful!");
+
+  // Setting TX power changes the current consumption durring tranmission (23 is max)
+  rf95.setTxPower(23, false);
+
+  Serial.println();
 
 }
 
 void loop() {
   // Get sensor data
-
-  // delay(5000);
-
-  // scratch the TMP 
-  // Serial.println("TEST");
-  // //*
-  // Serial.println("Start of loop");
-  // float temp;
-  // temp = tmp117_get_temp(&tmp117);
-  // Serial.println(temp);
-
-  // delay(5000);
 
   Serial.println("Sampling BME688");
   bme_data_t bme_data;

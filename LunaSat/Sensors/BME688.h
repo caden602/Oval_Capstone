@@ -32,7 +32,7 @@ typedef struct{
     uint32_t pressure;          // 32 bits -> 4 bytes
     float humidity;             // 32 bits -> 4 bytes
     uint32_t gas_resistance;    // 32 bits -> 4 bytes
-    uint8_t error;              // 8 bits  -> 1 byte
+    bool error;                 // 8 bits  -> 1 byte
 }bme_data_t;                    // total   -> 17 bytes
 
 
