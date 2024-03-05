@@ -41,18 +41,6 @@
 #include <Wire.h>
 #include <SparkFunADXL313.h> //Click here to get the library: http://librarymanager/All#SparkFun_ADXL313
 
-// Define enum for sample rates
-enum SampleRate {
-    SAMPLE_RATE_1600 = ADXL313_BW_1600,
-    SAMPLE_RATE_800 = ADXL313_BW_800,
-    SAMPLE_RATE_400 = ADXL313_BW_400,
-    SAMPLE_RATE_50 = ADXL313_BW_50,
-    SAMPLE_RATE_25 = ADXL313_BW_25
-};
-
-// Change sample rate here:
-SampleRate selectedSampleRate = SAMPLE_RATE_1600; // Default sample rate selected
-
 typedef struct{
     int16_t x;          // 16 bits -> 2 bytes
     int16_t y;          // 16 bits -> 2 bytes
@@ -72,9 +60,6 @@ void adxl_setup(ADXL313 *myAdxl)
     Serial.println("ADXL313 Found!");
     
     myAdxl->measureModeOn(); // wakes up the sensor from standby and puts it into measurement mode
-
-    // Configure Sample Rate
-    myAdxl->setRate(selectedSampleRate);
 }
 
 void adxl_get_data(ADXL313 *myAdxl, adxl_data_t*adxl_data)
