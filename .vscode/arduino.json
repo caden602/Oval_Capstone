@@ -1,5 +1,4 @@
 {
     "board": "arduino:avr:uno",
-    "sketch": "LoRa/RX/RX.ino",
     "port": "/dev/tty.usbmodem142101"
 }
