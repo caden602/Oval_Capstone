@@ -1,8 +1,5 @@
-#include <SPI.h>
-#include <RH_RF95.h>
-
-
-#include "LunaSat.h"
+#include <LunaSat.h>
+#include <LoRa.h>
 // Current Base Module uses the Feather M0
 // 1) Request Data from specific LunaSat using unique identifier
 // 2) Print out the data received
@@ -21,51 +18,22 @@
 #define RF95_FREQ 915.0
 
 // Singleton instance of the radio driver
-RH_RF95 rf95(RFM95_CS, RFM95_INT);
+RH_RF95 rf95(RFM95_CS, RFM95_INT, false);
 
 uint8_t lunaSatIDs[2] = {LUNA_SAT_1, LUNA_SAT_2};
 
+uint8_t lunaSatNum = 1;  // Keeps track of Luna Sat Num to request data from
 
 
 void setup() {
-  pinMode(RFM95_RST, OUTPUT);
-  digitalWrite(RFM95_RST, HIGH);
-
   Serial.begin(115200);
   while (!Serial) delay(1);
   delay(100);
 
-  Serial.println("Feather LoRa TX Test!");
-
-  // manual reset
-  digitalWrite(RFM95_RST, LOW);
-  delay(10);
-  digitalWrite(RFM95_RST, HIGH);
-  delay(10);
-
-  while (!rf95.init()) {
-    Serial.println("LoRa initialization failed");
-    Serial.println("Uncomment '#define SERIAL_DEBUG' in RH_RF95.cpp for detailed debug info");
-    while (1);
-  }
-  Serial.println("LoRa radio initalized");
-
-  // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
-  if (!rf95.setFrequency(RF95_FREQ)) {
-    Serial.println("setFrequency failed");
-    while (1);
-  }
-  Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
-
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-
-  // The default transmitter power is 13dBm, using PA_BOOST.
-  // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
-  // you can set transmitter powers from 5 to 23 dBm:
-  rf95.setTxPower(23, false);
+  // Setup LoRa
+  lora_setup(&rf95, RFM95_RST, false);
 }
 
-uint8_t lunaSatNum = 1;  // Keeps track of Luna Sat Num to request data from
 
 void loop() {
   delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
@@ -101,29 +69,29 @@ void loop() {
   uint8_t len = sizeof(buf);
 
   //Serial.println("Waiting for data...");
-  if (rf95.waitAvailableTimeout(1000)) {
+  if (rf95.waitAvailableTimeout(4000)) {
     // Should be a reply message for us now
-    if (rf95.recv(buf, &len)) {
-      if (rf95.lastRssi() < -800){
-        Serial.println("Data Invalid");
+    bool done = false;
+    while(!done){
+      if (rf95.recv(buf, &len)) {
+        if (rf95.lastRssi() < -800)
+          Serial.println("Data Invalid");
+        else{
+          RH_RF95::printBuffer("Received: ", buf, 28);
+          char* end_data = "END OF DATA";
+          char* RX = (char*)buf;
+          if(!strcmp(RX, end_data)){
+            done = true;
+          }
+        }
+        
+        Serial.print("RSSI: ");
+        Serial.println(rf95.lastRssi(), DEC);
       }
-      else{
-        //Serial.print("RX data: ");
-        //Serial.println((char*)buf);
-
-        RH_RF95::printBuffer("Received: ", buf, 28);
-        //Serial.println(buf[2], HEX);
-
-        package_t package = bytes_to_package(buf);
-        Serial.println(package.temp_data);
-      }
-      Serial.print("RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);
     }
-    else {
-      Serial.println("Receive failed");
-    }
-  } else {
+    rf95.setModeIdle();
+  }
+  else {
     Serial.println("No data received");
   }
   Serial.println("--------------------------------");
@@ -133,10 +101,16 @@ void loop() {
 
 package_t bytes_to_package(uint8_t* buf){
     package_t package;
+    bme_data_t bme_data;
+    adxl_data_t adxl_data;
+    lis3mdl_data_t lis3mdl_data;
 
     uint32_t temp = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
-    float temp_data = *reinterpret_cast<float*>(&temp);
-    package.temp_data = temp_data;
+
+    uint32_t temp = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
+    
+    bme_data.temperature = *reinterpret_cast<float*>(&temp);
+    //package.temp_data = temp_data;
     
     return package;
 }
