@@ -31,11 +31,9 @@ void setup() {
   // lis3mdl_setup(&lis3mdl);
   // delay(1000);
 
-  // Setup Accelerometer
   adxl_setup(&adxl);
   delay(1000);
 
-  // Setup BME
   bme_setup(&bme);
   delay(1000);
 
