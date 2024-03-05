@@ -101,16 +101,11 @@ void loop() {
 
 package_t bytes_to_package(uint8_t* buf){
     package_t package;
-    bme_data_t bme_data;
-    adxl_data_t adxl_data;
-    lis3mdl_data_t lis3mdl_data;
 
     uint32_t temp = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
 
-    uint32_t temp = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
-    
-    bme_data.temperature = *reinterpret_cast<float*>(&temp);
-    //package.temp_data = temp_data;
+    package.bme_data.temperature = *reinterpret_cast<float*>(&temp);
+
     
     return package;
 }
