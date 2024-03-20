@@ -1,9 +1,4 @@
 #include <LunaSat.h>
-#include <LoRa.h>
-// Current Base Module uses the Feather M0
-// 1) Request Data from specific LunaSat using unique identifier
-// 2) Print out the data received
-
 
 // Unique identifiers for Luna Sats
 #define LUNA_SAT_1  1
@@ -14,10 +9,7 @@
 #define RFM95_INT   3
 #define RFM95_RST   4
 
-// Change to 434.0 or other frequency, must match RX's freq!
-#define RF95_FREQ 915.0
-
-// Singleton instance of the radio driver
+// Define instance of LoRa (Pass in 'false' for use with BaseStation interrupts)
 RH_RF95 rf95(RFM95_CS, RFM95_INT, false);
 
 uint8_t lunaSatIDs[2] = {LUNA_SAT_1, LUNA_SAT_2};
@@ -36,14 +28,14 @@ void setup() {
 
 
 void loop() {
-  delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
+  delay(5000); // Wait 1 second between transmits, could also 'sleep' here!
 
   // Print header
-  Serial.println();
-  Serial.println("--------------------------------");
+  // Serial.println();
+  // Serial.println("--------------------------------");
 
 
-   // Switch LunaSat to request from
+  // Switch LunaSat to request from
   if (lunaSatNum == 1){
     lunaSatNum = 0;
   }
@@ -51,8 +43,8 @@ void loop() {
     lunaSatNum = 1;
   }
 
-  Serial.print("Requesting Data From LunaSat #"); // Send a message to rf95_server
-  Serial.println(lunaSatIDs[lunaSatNum]); // Luna Sat #1
+  // Serial.print("Requesting Data From LunaSat #"); // Send a message to rf95_server
+  // Serial.println(lunaSatIDs[lunaSatNum]); // Luna Sat #1
 
   char radiopacket[13] = "LunaSat #   ";
   itoa(lunaSatIDs[lunaSatNum], radiopacket+9, 3);
@@ -65,7 +57,7 @@ void loop() {
   delay(10);
   rf95.waitPacketSent();
   // Now wait for a reply
-  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN]; // = {NULL};
   uint8_t len = sizeof(buf);
 
   //Serial.println("Waiting for data...");
@@ -74,40 +66,40 @@ void loop() {
     bool done = false;
     while(!done){
       if (rf95.recv(buf, &len)) {
-        if (rf95.lastRssi() < -800)
-          Serial.println("Data Invalid");
+        if (rf95.lastRssi() < -800){
+          //Serial.println("Data Invalid");
+        }
         else{
-          RH_RF95::printBuffer("Received: ", buf, 28);
+          //RH_RF95::printBuffer("Received: ", buf, 33);
           char* end_data = "END OF DATA";
           char* RX = (char*)buf;
           if(!strcmp(RX, end_data)){
             done = true;
+            //Serial.println("TEST");
+            // Get current time
+            // We use this time to normalize the time sent in the final 'END OF DATA' package
+          }
+          else{
+            package_t package;
+            bytes_to_package(&package, buf);
+            print_package_for_serial(&package);
           }
         }
-        
-        Serial.print("RSSI: ");
-        Serial.println(rf95.lastRssi(), DEC);
+        // Serial.print("RSSI: ");
+        // Serial.println(rf95.lastRssi(), DEC);
+        for(int i=0; i < 37; i++){
+          buf[i] = 0;
+        }
       }
+
     }
     rf95.setModeIdle();
   }
   else {
-    Serial.println("No data received");
+    // Serial.println("No data received");
   }
-  Serial.println("--------------------------------");
-  Serial.println();
-}
-
-
-package_t bytes_to_package(uint8_t* buf){
-    package_t package;
-
-    uint32_t temp = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
-
-    package.bme_data.temperature = *reinterpret_cast<float*>(&temp);
-
-    
-    return package;
+  // Serial.println("--------------------------------");
+  // Serial.println();
 }
 
 //  0 m / -11
