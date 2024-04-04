@@ -15,17 +15,29 @@ ser = serial.Serial(serial_port, baud_rate)
 time_data = []
 temp_data = []
 humidity_data = []
+gas_data = []
+pressure_data = []
 
 # Create figure and axis objects
-fig, (ax1, ax2) = plt.subplots(2, 1)
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
 line1, = ax1.plot([], [], lw=2, label='Temperature')
 line2, = ax2.plot([], [], lw=2, label='Humidity')
-ax1.set_xlabel('Time')
+line3, = ax3.plot([], [], lw=2, label='Gas')
+line4, = ax4.plot([], [], lw=2, label='Pressure')
+axes = [ax1, ax2, ax3, ax4]
+lines = [line1, line2, line3, line4]
+
+for ax in axes:
+    ax.set_xlabel('Time')
 ax1.set_ylabel('Temperature')
-ax1.set_title('Temperature vs Time')
-ax2.set_xlabel('Time')
 ax2.set_ylabel('Humidity')
+ax3.set_ylabel('Gas')
+ax4.set_ylabel('Pressure')
+
+ax1.set_title('Temperature vs Time')
 ax2.set_title('Humidity vs Time')
+ax3.set_title('Gas vs Time')
+ax4.set_title('Pressure vs Time')
 
 # Function to read serial data
 def read_serial_data():
@@ -38,22 +50,31 @@ def read_serial_data():
         # Parse sensor data
         temp = float(data_points[0])  # Get the first element as float
         humidity = float(data_points[1])  # Get the second element as float
+        gas = float(data_points[2])  # Get the third element as float
+        pressure = float(data_points[3])  # Get the fourth element as float
 
         # Append data to lists
         time_data.append(len(time_data) + 1)  # Assuming time is just the number of readings
         temp_data.append(temp)
         humidity_data.append(humidity)
+        gas_data.append(gas)
+        pressure_data.append(pressure)
 
 # Function to update the plot
 def update(frame):
     read_serial_data()  # Read serial data
-    line1.set_data(time_data, temp_data)
-    line2.set_data(time_data, humidity_data)
-    ax1.relim()
-    ax1.autoscale_view()
-    ax2.relim()
-    ax2.autoscale_view()
-    return line1, line2
+    for line, data in zip(lines, [temp_data, humidity_data, gas_data, pressure_data]):
+        line.set_data(time_data, data)
+    for ax in axes:
+        ax.relim()
+        ax.autoscale_view()
+        ax.set_xticklabels(['Time'])
+    # Set Bounds
+    ax1.set_ylim(0, 100000) # Temp
+    ax2.set_ylim(0, 50)     # Humidity
+    ax3.set_ylim(0, 50)     # Gas
+    ax4.set_ylim(50,200)    # Pressure
+    return lines
 
 # Create animation
 ani = FuncAnimation(fig, update, frames=None, blit=True, interval=1000)
