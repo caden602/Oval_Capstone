@@ -1,8 +1,7 @@
 #include <LunaSat.h>
 
 // Unique identifiers for Luna Sats
-#define LUNA_SAT_1  1
-#define LUNA_SAT_2  2
+#define NUM_OF_LUNASATS 2
 
 // Pins for Feather M0
 #define RFM95_CS    8
@@ -11,8 +10,6 @@
 
 // Define instance of LoRa (Pass in 'false' for use with BaseStation interrupts)
 RH_RF95 rf95(RFM95_CS, RFM95_INT, false);
-
-uint8_t lunaSatIDs[2] = {LUNA_SAT_1, LUNA_SAT_2};
 
 uint8_t lunaSatNum = 1;  // Keeps track of Luna Sat Num to request data from
 
@@ -31,27 +28,18 @@ void loop() {
   delay(5000); // Wait 1 second between transmits, could also 'sleep' here!
 
   // Print header
-  // Serial.println();
-  // Serial.println("--------------------------------");
+  Serial.println();
+  Serial.println("--------------------------------");
 
+  Serial.print("Requesting Data From LunaSat #");
+  Serial.println(lunaSatNum); // Luna Sat #1
 
-  // Switch LunaSat to request from
-  if (lunaSatNum == 1){
-    lunaSatNum = 0;
-  }
-  else{
-    lunaSatNum = 1;
-  }
-
-  // Serial.print("Requesting Data From LunaSat #"); // Send a message to rf95_server
-  // Serial.println(lunaSatIDs[lunaSatNum]); // Luna Sat #1
-
-  char radiopacket[13] = "LunaSat #   ";
-  itoa(lunaSatIDs[lunaSatNum], radiopacket+9, 3);
+  char request_packet[13] = "LunaSat #   ";
+  itoa(lunaSatNum, request_packet+9, 3);
   //Serial.print("Sending "); Serial.println(radiopacket);
 
   delay(10);
-  rf95.send((uint8_t *)radiopacket, 20);
+  rf95.send((uint8_t *)request_packet, 20);
 
   //Serial.println("Waiting for packet to complete...");
   delay(10);
@@ -60,10 +48,32 @@ void loop() {
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN]; // = {NULL};
   uint8_t len = sizeof(buf);
 
-  //Serial.println("Waiting for data...");
+  // Wait 4 seconds for data reply
   if (rf95.waitAvailableTimeout(4000)) {
     // Should be a reply message for us now
+
+    int time_offset = 0;
+
+    // Get header
+    if (rf95.recv(buf, &len))
+    {
+      package_header_t header;
+      bytes_to_header(&header, buf);
+      time_offset = millis() - header.current_time;
+      if(time_offset < 0)
+      {
+        time_offset = 0;
+      }
+
+      // Serial.println(header.num_packages);
+      // Serial.println(header.current_time);
+    }
+
+    len = 250;
+
     bool done = false;
+    unsigned long curr_time = millis();
+
     while(!done){
       if (rf95.recv(buf, &len)) {
         if (rf95.lastRssi() < -800){
@@ -82,24 +92,36 @@ void loop() {
           else{
             package_t package;
             bytes_to_package(&package, buf);
+
+            //Serial.println(package.time_stamp);
+            package.time_stamp += time_offset;
             print_package_for_serial(&package);
           }
         }
-        // Serial.print("RSSI: ");
-        // Serial.println(rf95.lastRssi(), DEC);
-        for(int i=0; i < 37; i++){
-          buf[i] = 0;
-        }
       }
 
+      else{
+        unsigned long time = millis();
+        if(time - curr_time > 4000){
+          break;
+        }
+      }
     }
     rf95.setModeIdle();
   }
   else {
-    // Serial.println("No data received");
+    Serial.println("No data received");
   }
-  // Serial.println("--------------------------------");
-  // Serial.println();
+  Serial.println("--------------------------------");
+
+  // Iterate LunaSat to request from
+  if(lunaSatNum < NUM_OF_LUNASATS){
+    lunaSatNum ++;
+  }
+  else{
+    lunaSatNum = 1;
+  }
+
 }
 
 //  0 m / -11

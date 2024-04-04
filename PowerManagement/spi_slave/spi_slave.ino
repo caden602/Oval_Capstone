@@ -52,17 +52,25 @@ void SPI_USI_init(){
 }
  
 ISR (USI_OVF_vect){
-  PORTB^=0x10; //PB3 test
+
+  //PORTB^=0x10; //PB3 test
   uint8_t reception=USIDR;
 
-  if(reception == 0x01){
+  if(digitalRead(LED_PIN) == 1)
+  {
+    return;
+  }
+  
+  else if(reception == 0x01){
     collecting = true;
-    USIDR = 0x01;
+    USIDR = 0x03;
+    // USIDR = digitalRead(LED_PIN);
     lastByte = false;
   }
   else if(reception == 0x02) {
     collecting = false;
-    USIDR = 0x02;
+    USIDR = 0x04;
+    // USIDR = digitalRead(LED_PIN);
     lastByte = false;
   }
   else if(reception == 0x03) {
@@ -81,11 +89,12 @@ ISR (USI_OVF_vect){
       lastByte = !lastByte;
     }
   }
+
   // USIDR = analogRead(3);
  
   USISR = 1<<USIOIF;
  
-  PORTB^=0x10; //PB3 test
+  //PORTB^=0x10; //PB3 test
  
 }
 void setup() {
@@ -93,6 +102,8 @@ void setup() {
   DDRB|=0x10; //PB4 test 0001 0000
   PORTB&=~0x10;
   SPI_USI_init();
+
+  pinMode(LED_PIN, INPUT_PULLUP);
  
   sei();
 }
@@ -135,5 +146,5 @@ void loop(void)
   // }
 
   }
-  analogWrite(LED_PIN, reading);
+  // analogWrite(LED_PIN, reading);
 }
