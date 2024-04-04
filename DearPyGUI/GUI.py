@@ -1,4 +1,61 @@
 import dearpygui.dearpygui as dpg
+import serial.tools.list_ports
+import serial
+
+def detect_serial_port():
+    # Get a list of all available serial ports
+    ports = serial.tools.list_ports.comports()
+    
+    # Iterate over each port and check if it meets your criteria
+    for port in ports:
+        # Print information about each port (optional)
+        print("Found port:", port.device, "-", port.description)
+        
+        # Check if the port meets your criteria (e.g., based on description or manufacturer)
+        if "usbmodem" in port.description:  # You can adjust this condition based on your requirements
+            return port.device  # Return the device name if it meets your criteria
+    
+    # If no suitable port is found, return None
+    return None
+
+# Detect the serial port
+serial_port = detect_serial_port()
+
+# Check if a serial port was found
+if serial_port:
+    print("Serial port found:", serial_port)
+else:
+    print("No suitable serial port found.")
+
+# Serial config
+baud_rate = 9600 # Change this to match the baud rate of your device 115200 
+output_file_path = 'output.txt'
+# FOR GINN ONLY
+# serial_port = "usbmodem143101"
+serial_port = "/dev/cu.usbmodem141301"
+
+# Initialize the serial connection
+ser = serial.Serial(serial_port, baud_rate)
+
+# Global defs
+temp_data = None
+
+try:
+    with serial.Serial(serial_port, baud_rate) as ser:
+        with open(output_file_path, 'w') as out_file:
+            while True:
+                line = ser.readline().decode('utf-8').rstrip()  # Read a line and strip newline
+                print(line)  # Optional: echo to console
+
+                # Extract the first data point
+                data_points = line.split(',')  # Split the line by commas
+                temp_data = data_points[0]  # Get the first element
+
+                out_file.write(line + '\n')  # Write to the file
+                
+except KeyboardInterrupt:
+    # Close the serial connection when Ctrl+C is pressed
+    ser.close()
 
 # Define an empty dictionary to hold enum-like values
 row_dict = {}
@@ -62,7 +119,7 @@ with dpg.window(label="Display Data"):
             with dpg.table_row():
                 for j in range(0,6): # Columns
                     with dpg.table_cell():
-                        dpg.add_text("data")
+                        dpg.add_text(temp_data)
         
 
 dpg.create_viewport(title='Custom Title', width=800, height=600)
@@ -70,3 +127,4 @@ dpg.setup_dearpygui()
 dpg.show_viewport()
 dpg.start_dearpygui()
 dpg.destroy_context()
+
