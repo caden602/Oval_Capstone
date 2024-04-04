@@ -1,3 +1,10 @@
+/*
+* UC2.c
+*
+* Created: 20/03/2020 15:53:57
+* Author : Onion
+*/
+ 
 //horloge de 1MHz
  
 #include <avr/io.h>
@@ -37,6 +44,7 @@ bool lastByte = false;
 
 elapsedMillis timeSinceStart;
 elapsedMillis timeSinceRead;
+int iter;
 
 void SPI_USI_init(){
   //activation des ports
@@ -52,25 +60,26 @@ void SPI_USI_init(){
 }
  
 ISR (USI_OVF_vect){
-
-  //PORTB^=0x10; //PB3 test
+  PORTB^=0x10; //PB3 test
   uint8_t reception=USIDR;
 
-  if(digitalRead(LED_PIN) == 1)
+  if(digitalRead(4) == 1)
   {
     return;
   }
-  
   else if(reception == 0x01){
+    // analogWrite(4, HIGH);
     collecting = true;
+    timeSinceStart = 0;
+    tail = 0;
+    head = 0;
+    iter = 0;
     USIDR = 0x03;
-    // USIDR = digitalRead(LED_PIN);
     lastByte = false;
   }
   else if(reception == 0x02) {
     collecting = false;
     USIDR = 0x04;
-    // USIDR = digitalRead(LED_PIN);
     lastByte = false;
   }
   else if(reception == 0x03) {
@@ -83,28 +92,47 @@ ISR (USI_OVF_vect){
       }
       else {
         USIDR = (uint8_t) (Data[tail] & 0xFF);
-        tail = (tail+1 == size) ? 0 : tail++;
+
+        if((tail + 1) == size)
+          tail = 0;
+        else
+          tail += 1;
       }
 
       lastByte = !lastByte;
     }
   }
-
-  // USIDR = analogRead(3);
  
   USISR = 1<<USIOIF;
  
-  //PORTB^=0x10; //PB3 test
+  PORTB^=0x10; //PB3 test
  
 }
 void setup() {
+  pinMode(4, INPUT);
+  pinMode(3, INPUT);
+  // digitalWrite(4, HIGH);
+  // delay(1000);
+  // digitalWrite(4, LOW);
+  // delay(1000);
+  // digitalWrite(4, HIGH);
+  // delay(1000);
+  // digitalWrite(4, LOW);
+
   DDRB=0x10;
   DDRB|=0x10; //PB4 test 0001 0000
   PORTB&=~0x10;
   SPI_USI_init();
-
-  pinMode(LED_PIN, INPUT_PULLUP);
  
+
+  // digitalWrite(4, HIGH);
+  // delay(1000);
+  // digitalWrite(4, LOW);
+  // delay(1000);
+  // digitalWrite(4, HIGH);
+  // delay(1000);
+  // digitalWrite(4, LOW);
+
   sei();
 }
 
@@ -112,39 +140,66 @@ void loop(void)
 {
   uint16_t reading = uint16_t(analogRead(READ_PIN));
   if (collecting) {
+    // digitalWrite(4, HIGH);
 
   // if(collecting && timeSinceRead > readingDelay){
     if(tail == head){
       // ARRAY EMPTY
 
       // Store data
-      uint8_t time = timeSinceStart / 100;
-      Data[head] = reading && 0x3FF;
-      Data[head] |= (time & 0x3F) << 10;
+      uint8_t time = uint8_t(timeSinceStart);
+      // uint8_t time = iter++;
+      if (reading == 0){
+        reading = 1000;
+      }
+      Data[head] = reading & 0x3FF; // 0b11 1111 1111
+      Data[head] = Data[head] | ((time & 0x3F) << 10); // 0b11 1111
       
-      head = (head+1 == size) ? 0 : head++;
+      // head = (head+1 == size) ? 0 : head++;
+      if ((head + 1) == size)
+        head = 0;
+      else
+        head += 1;
+
+      // digitalWrite(LED_PIN, HIGH);
+      // delay(100);
+      // digitalWrite(LED_PIN, LOW);
+      // delay(100);
     }
-    else if(head+1 == tail || ((head+1 == size) && !tail))
+    else if(((head+1) == tail) || ((head+1 == size) && !tail))
     {
       // ARRAY FULL DO nothing
     }
     else {
       // If data is within 10mV of previous range -> do nothing
-      uint16_t prev_reading = (head ? Data[head-1] : Data[size - 1]) & 0x3FF;
+      uint16_t prev_reading = 0;
+      if (head) 
+        prev_reading = Data[head-1] & 0x3FF;
+      else
+        prev_reading = Data[size-1] & 0x3FF;
+
+
       if(abs(prev_reading - reading) > 3){
         // Store data
-        uint8_t time = timeSinceStart / 100;
-        Data[head] = reading && 0x3FF;
-        Data[head] |= (time & 0x3F) << 10;
+        uint8_t time = uint8_t(timeSinceStart);
+        // uint8_t time = iter++;
+        Data[head] = reading & 0x3FF;
+        Data[head] = Data[head] | ((time & 0x3F) << 10);
 
-        head = (head+1 == size) ? 0 : head++;
+        // head = (head+1 == size) ? 0 : head++;
+        if((head + 1) == size)
+          head = 0;
+        else
+          head += 1;
       }
     }
 
    
   //   timeSinceRead = 0;
   // }
+    delay(2);
 
   }
-  // analogWrite(LED_PIN, reading);
+  // else
+  //   digitalWrite(LED_PIN, LOW);
 }
