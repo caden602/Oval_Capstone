@@ -95,7 +95,7 @@ void loop() {
     remove_scheduled_event(EVENT_DATA_REQUEST);
     // Serial.print("Sending "); Serial.print(num_pack); Serial.println(" packages");
 
-    //*
+    /*
 
     // Turn off LoRa CS
     digitalWrite(RFM95_CS, HIGH);
@@ -172,7 +172,7 @@ void loop() {
     
     rf95.setModeRx();
 
-    //*
+    /*
 
     // Turn off LoRa CS
     digitalWrite(RFM95_CS, HIGH);
