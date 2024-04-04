@@ -28,7 +28,7 @@ int lis_page_start;
 void setup() {
   Serial.begin(115200); 
   while (!Serial) delay(1);
-  delay(100);
+  delay(1000);
 
 
   // Setup ATTiny and disable CS
@@ -40,14 +40,14 @@ void setup() {
 
   /* For LIS3MDL, you only need to set it up once. If you try to set it up again 
      without fulling cutting power to the sensor, you will receive a setup failure. */
-  //lis3mdl_setup(&lis3mdl);
-  //delay(1000);
-
-  adxl_setup(&adxl);
-  delay(2000);
+  lis3mdl_setup(&lis3mdl);
+  delay(1000);
   
   bme_setup(&bme);
   delay(1000);
+
+  adxl_setup(&adxl);
+  delay(2000);
 
   // Serial.println("All Sensors Good!");
 
@@ -80,8 +80,8 @@ void loop() {
   // Store Package in EEPORM if we can fit it
   if(page_num < 512){
     store_package(&package, page_num);
-    Serial.print("Storing package on page ");
-    Serial.println(page_num);
+    // Serial.print("Storing package on page ");
+    // Serial.println(page_num);
     print_package_for_serial(&package);
     page_num++;
   }
@@ -130,10 +130,9 @@ void loop() {
 
     //*/
 
-
     
 
-    Serial.println("Send Header");
+    //Serial.println("Send Header");
     package_header_t header;
     header.num_packages = page_num;
     header.current_time = millis();
@@ -144,7 +143,7 @@ void loop() {
 
     delay(50);
 
-    Serial.println("Send Data");
+    //Serial.println("Send Data");
     package_t package_new;
 
     // Send all data from EEPROM (TODO: Condense packages into minimal # of TX)
@@ -202,16 +201,19 @@ void loop() {
     Serial.println("========= Started data retreival =========");
     while (true){
       iter ++;
-      delay(50);
       SPI.transfer(0x03);
       delay(50);
       SPI.transfer(0xFF);
+      delay(50);
       uint8_t highByte = SPDR;
+      Serial.println(highByte);
       delay(50);
       SPI.transfer(0x03);
       delay(50);
       SPI.transfer(0xFF);
+      delay(50);
       uint8_t lowByte = SPDR;
+      Serial.println(lowByte);
       uint16_t analogValue = ((highByte & 0x3) << 8) | lowByte;
       uint16_t time = (highByte >> 2);
 
