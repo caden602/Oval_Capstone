@@ -5,7 +5,7 @@ import datetime
 import time
 
 # Global Variables
-choice = 1
+choice = 2
 
 def detect_serial_port():
     # Get a list of all available serial ports
