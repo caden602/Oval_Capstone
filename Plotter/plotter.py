@@ -3,7 +3,7 @@ from matplotlib.animation import FuncAnimation
 import serial
 
 # Serial config
-baud_rate = 9600  # Change this to match the baud rate of your device 115200
+baud_rate = 115200  # Change this to match the baud rate of your device 115200
 # FOR GINN ONLY
 # serial_port = "usbmodem143101"
 serial_port = "/dev/cu.usbmodem141301"
@@ -29,10 +29,10 @@ lines = [line1, line2, line3, line4]
 
 for ax in axes:
     ax.set_xlabel('Time')
-ax1.set_ylabel('Temperature')
-ax2.set_ylabel('Humidity')
-ax3.set_ylabel('Gas')
-ax4.set_ylabel('Pressure')
+ax1.set_ylabel('Temperature (C)')
+ax2.set_ylabel('Humidity (g/kg)')
+ax3.set_ylabel('Gas (J/Kmol)')
+ax4.set_ylabel('Pressure (psi)')
 
 ax1.set_title('Temperature vs Time')
 ax2.set_title('Humidity vs Time')
@@ -48,10 +48,10 @@ def read_serial_data():
         # Extract the data points
         data_points = line.split(',')  # Split the line by commas
         # Parse sensor data
-        temp = float(data_points[0])  # Get the first element as float
-        humidity = float(data_points[1])  # Get the second element as float
-        gas = float(data_points[2])  # Get the third element as float
-        pressure = float(data_points[3])  # Get the fourth element as float
+        temp = float(data_points[1])  # Get the first element as float
+        humidity = float(data_points[2])  # Get the second element as float
+        gas = float(data_points[3])  # Get the third element as float
+        pressure = float(data_points[4])  # Get the fourth element as float
 
         # Append data to lists
         time_data.append(len(time_data) + 1)  # Assuming time is just the number of readings
@@ -70,10 +70,10 @@ def update(frame):
         ax.autoscale_view()
         ax.set_xticklabels(['Time'])
     # Set Bounds
-    ax1.set_ylim(0, 100000) # Temp
+    ax1.set_ylim(0, 100)    # Temp
     ax2.set_ylim(0, 50)     # Humidity
-    ax3.set_ylim(0, 50)     # Gas
-    ax4.set_ylim(50,200)    # Pressure
+    ax3.set_ylim(50, 200)   # Gas
+    ax4.set_ylim(0, 20)     # Pressure
     return lines
 
 # Create animation
