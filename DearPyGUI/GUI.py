@@ -63,16 +63,16 @@ with serial.Serial(serial_port, baud_rate) as ser:
                     # Extract the first data point
                     data_points = line.split(',')  # Split the line by commas
                     # Parse sensor data
-                    temp_data = data_points[0]  # Get the first element
-                    humidity_data = data_points[1]
-                    gas_data = data_points[2]
-                    pressure_data = data_points[3]
-                    adxl_data_x = data_points[4]
-                    adxl_data_y = data_points[5]
-                    adxl_data_z = data_points[6]
-                    lis3md_data_x = data_points[7]
-                    lis3md_data_y = data_points[8]
-                    lis3md_data_z = data_points[9]
+                    temp_data = data_points[1]  # Get the first element
+                    humidity_data = data_points[2]
+                    gas_data = data_points[3]
+                    pressure_data = data_points[4]
+                    adxl_data_x = data_points[5]
+                    adxl_data_y = data_points[6]
+                    adxl_data_z = data_points[7]
+                    lis3md_data_x = data_points[8]
+                    lis3md_data_y = data_points[9]
+                    lis3md_data_z = data_points[10]
 
                     out_file.write(line + '\n')  # Write to the file
 

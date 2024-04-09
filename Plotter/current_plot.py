@@ -4,7 +4,8 @@ import serial
 
 # Serial config
 baud_rate = 115200  # Change this to match the baud rate of your device 115200
-serial_port = ""    #"/dev/cu.usbmodem141301"
+output_file_path = 'output.txt'
+serial_port = "/dev/tty.usbmodem141301"    #"/dev/cu.usbmodem141301"
 
 # Initialize the serial connection
 ser = serial.Serial(serial_port, baud_rate)
@@ -23,17 +24,23 @@ ax.set_title('Current vs Time')
 # Function to read serial data
 def read_serial_data():
     if ser.in_waiting > 0:
-        line = ser.readline().decode('utf-8').rstrip()  # Read a line and strip newline
-        print(line)  # Optional: echo to console
+        with open("output.txt", "w") as f:
+            line = ser.readline().decode('utf-8').rstrip()  # Read a line and strip newline
+            print(line)  # Optional: echo to console
 
-        # Extract the data points
-        data_points = line.split(',')  # Split the line by commas
-        # Parse sensor data
-        current = float(data_points[1])  # Get the first element as float
+            # Write some data to the file
+            f.write(line + '\n')
 
-        # Append data to lists
-        time_data.append(len(time_data) + 1)  # Assuming time is just the number of readings
-        current_data.append(current)
+            # Extract the data points
+            data_points = line.split(',')  # Split the line by commas
+
+            print(data_points)
+            # Parse sensor data
+            current = float(data_points[1])  # Get the first element as float
+
+            # Append data to lists
+            time_data.append(len(time_data) + 1)  # Assuming time is just the number of readings
+            current_data.append(current)
 
 # Function to update the plot
 def update(frame):
