@@ -21,6 +21,10 @@ static package_t package;
 static int num_pack = 0;
 static int page_num = 0;
 
+int bme_page_start;
+int adxl_page_start;
+int lis_page_start;
+
 void setup() {
   Serial.begin(115200); 
   while (!Serial) delay(1);
