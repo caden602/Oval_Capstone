@@ -36,6 +36,7 @@ void setup (void) {
    SPI.setClockDivider(SPI_CLOCK_DIV8);//divide the clock by 8
   //  digitalWrite(CS, LOW); // enable Slave Select   
   //  delay(10);     
+  Serial.println("Setup Complete");
 }
 
 void loop (void) {
@@ -53,42 +54,57 @@ void loop (void) {
   // delay(1000);
 
   // disable ATTiny communication
-  Serial.println("Turning off CS");
-  digitalWrite(ATTINY_CS, HIGH);
-  delay(1000);
+  // Serial.println("Turning off CS");
+  // digitalWrite(ATTINY_CS, HIGH);
+  // delay(1000);
 
 
+  // SPI.transfer(0x01);
+  // delay(50);
+
+  // SPI.transfer(0xFF);
+  // delay(50);
+  // // This recieve is just whatever we sent in the first transfer.
+  // uint8_t rec = SPDR;
+
+  // Serial.print("Recieved: ");
+  // Serial.println(rec);
+
+  // delay(500);
+
+  // Serial.println("Turning on CS");
+  // digitalWrite(ATTINY_CS, LOW);
+  // delay(1000);
+
+  // SPI.transfer(0x01);
+  // delay(50);
+  // SPI.transfer(0xFF);
+  // delay(50);
+  // rec = SPDR;
+
+  // Serial.print("Recieved: ");
+  // Serial.println(rec);
+
+  // delay(500);
+
+  // Serial.println();
+
+  digitalWrite(ATTINY_CS, HIGH); // disable Slave Select
+  delay(500);
+  digitalWrite(ATTINY_CS, LOW); // disable Slave Select
+  delay(500);
+  digitalWrite(ATTINY_CS, HIGH); // disable Slave Select
+  delay(500);
   SPI.transfer(0x01);
   delay(50);
-
   SPI.transfer(0xFF);
-  delay(50);
-  // This recieve is just whatever we sent in the first transfer.
-  uint8_t rec = SPDR;
+  if(SPDR == 0x3){
+    Serial.println("========= ERROR AT85 SHOULD BE DESABLED =========");
+    while(1);  
+  }
+  Serial.println("========= NO ERROR AT85 IS DISABLED =========");
 
-  Serial.print("Recieved: ");
-  Serial.println(rec);
-
-  delay(500);
-
-  Serial.println("Turning on CS");
-  digitalWrite(ATTINY_CS, LOW);
-  delay(1000);
-
-  SPI.transfer(0x01);
-  delay(50);
-  SPI.transfer(0xFF);
-  delay(50);
-  rec = SPDR;
-
-  Serial.print("Recieved: ");
-  Serial.println(rec);
-
-  delay(500);
-
-  Serial.println();
-
-  /*
+  
 
   digitalWrite(ATTINY_CS, LOW); // enable Slave Select        
 
@@ -98,7 +114,7 @@ void loop (void) {
   SPI.transfer(0x01);
   delay(50);
   SPI.transfer(0xFF);
-  if(SPDR != 0x01)
+  if(SPDR != 0x03)
     while(1);  
   Serial.println("Worked");
    
@@ -127,17 +143,14 @@ void loop (void) {
       uint8_t lowByte = SPDR;
       uint16_t analogValue = ((highByte & 0x3) << 8) | lowByte;
       uint16_t time = (highByte >> 2);
-
       if(time < prev_time){
         time_step++;
       }
       prev_time = time;
       time = time + 64 * time_step;
-
-      if(lowByte == 0)
+      if(lowByte == 0 && highByte == 0)
         break;
-
-      float current = 1000* (3.3 * analogValue)/(1.5 * 22 * 1024 + 1.5 * analogValue);
+      float current = 1000* (3.3 * analogValue)/(1.5 * 20 * 1024 + 1.5 * analogValue);
       Serial.print(iter);
       Serial.print(" - ");
       Serial.print("Time: ");
@@ -147,7 +160,6 @@ void loop (void) {
       Serial.print(", Current: ");
       Serial.print(current);
       Serial.print(" mA     ");
-
       Serial.print(highByte, HEX);
       Serial.print(", ");
       Serial.print(lowByte, HEX);
@@ -156,16 +168,16 @@ void loop (void) {
   Serial.println("========= Finished =========");
   delay(500);
 
-  // digitalWrite(CS, HIGH); // disable Slave Select
-  // delay(50);
-  // SPI.transfer(0x01);
-  // delay(50);
-  // SPI.transfer(0xFF);
-  // if(SPDR == 0x1){
-  //   Serial.println("========= ERROR AT85 SHOULD BE DESABLED =========");
-  //   while(1);  
-  // }
-  // Serial.println("========= NO ERROR AT85 IS DISABLED =========");
+  digitalWrite(ATTINY_CS, HIGH); // disable Slave Select
+  delay(50);
+  SPI.transfer(0x01);
+  delay(50);
+  SPI.transfer(0xFF);
+  if(SPDR == 0x3){
+    Serial.println("========= ERROR AT85 SHOULD BE DESABLED =========");
+    while(1);  
+  }
+  Serial.println("========= NO ERROR AT85 IS DISABLED =========");
 
 
   // char c;

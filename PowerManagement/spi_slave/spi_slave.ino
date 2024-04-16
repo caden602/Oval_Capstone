@@ -84,8 +84,8 @@ ISR (USI_OVF_vect){
   }
   else if(reception == 0x03) {
 
-    USIDR = head;
-    return;
+    // USIDR = head;
+    // return;
 
     if(tail == head) {
       USIDR = 0x00;
