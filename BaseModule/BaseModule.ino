@@ -24,6 +24,143 @@ void setup() {
 }
 
 
+void rx_data(RH_RF95* rf95, d_header_pack_t header, sensor_choice_t sens){
+
+  uint8_t size;
+  uint16_t samples;
+  switch(sens){
+    case bme_t:
+      size = sizeof(d_bme_pack_t);
+      samples = header.bme_n;
+      // Serial.println("TEST HERE");
+      break;
+    case adxl_t:
+      size = sizeof(d_adxl_pack_t);
+      samples = header.adxl_n;
+      break;
+    case lis_t:
+      size = sizeof(d_lis_pack_t);
+      samples = header.lis_n;
+      break;
+  }
+
+  // Serial.print("SIZE: ");
+  // Serial.println(size);
+
+  unsigned long time_offset = millis() - header.local_time_stamp;
+  if(time_offset < 0)
+  {
+    time_offset = 0;
+  }
+
+  uint8_t samples_per_page = 128 / size;
+  uint8_t pages = samples / samples_per_page;
+  uint8_t remainder = samples % samples_per_page;
+
+  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN]; // = {NULL};
+  uint8_t len = 250;
+
+  bool done = false;
+  unsigned long curr_time = millis();
+
+  int tx_count = 0;
+
+  while(!done){
+    if (rf95->recv(buf, &len)) {
+      if (rf95->lastRssi() < -800){
+        //Serial.println("Data Invalid");
+      }
+      else{
+        tx_count ++;
+
+        // Check if we are at the end of pages
+        // pages = 1--> 1 + 1 == 2
+        if(tx_count == pages + 1){
+
+          // Get the remaining bytes specified by remainder
+          d_bme_pack_t bme_pack;
+          d_adxl_pack_t adxl_pack;
+          d_lis_pack_t lis_pack;
+          for(int i=0; i < remainder; i++){
+          
+            // get bytes and adjust time stamp
+            switch(sens){
+              case bme_t:
+                bytes_to_bme_data(buf + (i * size), &bme_pack);
+                bme_pack.time_stamp += time_offset;
+                print_bme_for_serial(&bme_pack);
+                break;
+              case adxl_t:
+                bytes_to_adxl_data(buf + (i * size), &adxl_pack);
+                adxl_pack.time_stamp += time_offset;
+                print_adxl_for_serial(&adxl_pack);
+                break;
+              case lis_t:
+                bytes_to_lis_data(buf + (i * size), &lis_pack);
+                lis_pack.time_stamp += time_offset;
+                print_lis_for_serial(&lis_pack);
+                break;
+            }
+
+            // Print data
+            // Serial.print("BME Data: Time = ");
+            // Serial.print(bme_pack.time_stamp);
+            // Serial.print(" , Temp = : ");
+            // Serial.println(bme_pack.bme_data.temperature);
+
+          }
+          // rf95->printBuffer("buf: ", buf, 120);
+          Serial.println("DONE!");
+          done = true;
+        }
+
+        else{
+
+          d_bme_pack_t bme_pack;
+          d_adxl_pack_t adxl_pack;
+          d_lis_pack_t lis_pack;
+          
+          // iterate through samples in page
+          for(int j=0; j < samples_per_page; j++){
+
+            // get bytes and adjust time stamp
+            switch(sens){
+              case bme_t:
+                bytes_to_bme_data(buf + (j * size), &bme_pack);
+                bme_pack.time_stamp += time_offset;
+                print_bme_for_serial(&bme_pack);
+                break;
+              case adxl_t:
+                bytes_to_adxl_data(buf + (j * size), &adxl_pack);
+                adxl_pack.time_stamp += time_offset;
+                print_adxl_for_serial(&adxl_pack);
+                break;
+              case lis_t:
+                bytes_to_lis_data(buf + (j * size), &lis_pack);
+                lis_pack.time_stamp += time_offset;
+                print_lis_for_serial(&lis_pack);
+                break;
+            }
+
+            // Print data
+            // Serial.print("BME Data: Time = ");
+            // Serial.print(bme_pack.time_stamp);
+            // Serial.print(" , Temp = : ");
+            // Serial.println(bme_pack.bme_data.temperature);
+          }
+        // rf95->printBuffer("buf: ", buf, 120);
+        }
+      }
+    }
+    else{
+      unsigned long time = millis();
+      if(time - curr_time > 1000){
+        break;
+      }
+    }
+  }
+}
+
 void loop() {
   delay(5000); // Wait 1 second between transmits, could also 'sleep' here!
 
@@ -53,26 +190,39 @@ void loop() {
     // Should be a reply message for us now
 
     int time_offset = 0;
+    d_header_pack_t header;
 
     // Get header
     if (rf95.recv(buf, &len))
     {
-      package_header_t header;
-      bytes_to_header(&header, buf);
-      time_offset = millis() - header.current_time;
+      bytes_to_header(buf, &header);
+      time_offset = millis() - header.local_time_stamp;
       if(time_offset < 0)
       {
         time_offset = 0;
       }
 
-      // Serial.println(header.num_packages);
-      // Serial.println(header.current_time);
+      Serial.print("Recieved header w/ ");
+      Serial.print(header.bme_n);
+      Serial.println(" bme samples.");
     }
+
+    rx_data(&rf95, header, bme_t);
+    rx_data(&rf95, header, adxl_t);
+    rx_data(&rf95, header, lis_t);
+
+
+    /*
+    uint8_t samples_per_page = 128 / sizeof(d_bme_pack_t);
+    uint8_t pages = header.bme_n / samples_per_page;
+    uint8_t remainder = header.bme_n % samples_per_page;
 
     len = 250;
 
     bool done = false;
     unsigned long curr_time = millis();
+
+    int tx_count = 0;
 
     while(!done){
       if (rf95.recv(buf, &len)) {
@@ -81,21 +231,59 @@ void loop() {
         }
         else{
           //RH_RF95::printBuffer("Received: ", buf, 33);
-          char* end_data = "END OF DATA";
-          char* RX = (char*)buf;
-          if(!strcmp(RX, end_data)){
-            done = true;
-            //Serial.println("TEST");
-            // Get current time
-            // We use this time to normalize the time sent in the final 'END OF DATA' package
-          }
-          else{
-            package_t package;
-            bytes_to_package(&package, buf);
+          // char* end_data = "END OF DATA";
+          // char* RX = (char*)buf;
+          // if(!strcmp(RX, end_data)){
+          //   done = true;
+          //   //Serial.println("TEST");
+          //   // Get current time
+          //   // We use this time to normalize the time sent in the final 'END OF DATA' package
+          // }
+          tx_count ++;
 
-            //Serial.println(package.time_stamp);
-            package.time_stamp += time_offset;
-            print_package_for_serial(&package);
+          // Check if we are at the end of pages
+          if(tx_count == pages + 1){
+
+            // Get the remaining bytes specified by offset
+            d_bme_pack_t bme_pack;
+            for(int i=0; i < remainder; i++){
+              // get bytes (+ offest using j) and store in bme_pack
+              bytes_to_bme_data(buf + (i * sizeof(d_bme_pack_t)), &bme_pack);
+
+              // Adjust timestamp
+              bme_pack.time_stamp += time_offset;
+
+              // Print data
+              Serial.print("BME Data: Time = ");
+              Serial.print(bme_pack.time_stamp);
+              Serial.print(" , Temp = : ");
+              Serial.println(bme_pack.bme_data.temperature);
+            }
+            rf95.printBuffer("buf: ", buf, 120);
+            Serial.println("DONE!");
+            done = true;
+          }
+
+          else{
+
+            d_bme_pack_t bme_pack;
+            
+            // iterate through samples in page
+            for(int j=0; j < samples_per_page; j++){
+
+              // get bytes (+ offest using j) and store in bme_pack
+              bytes_to_bme_data(buf + (j * sizeof(d_bme_pack_t)), &bme_pack);
+
+              // Adjust timestamp
+              bme_pack.time_stamp += time_offset;
+
+              // Print data
+              Serial.print("BME Data: Time = ");
+              Serial.print(bme_pack.time_stamp);
+              Serial.print(" , Temp = : ");
+              Serial.println(bme_pack.bme_data.temperature);
+            }
+          rf95.printBuffer("buf: ", buf, 120);
           }
         }
       }
@@ -107,6 +295,8 @@ void loop() {
         }
       }
     }
+
+    */
     rf95.setModeIdle();
   }
   else {
@@ -123,12 +313,3 @@ void loop() {
   }
 
 }
-
-//  0 m / -11
-// 10 m / -55
-// 20 m / -70
-// 30 m / -76
-// 40 m / -82
-// 50 m / -83
-// 60 m / -86
-// 70 m / -90

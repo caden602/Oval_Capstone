@@ -6,24 +6,24 @@
 
 #define ATTINY_CS   6
 
+#define ADXL_SAMPLE_RATE  2
+#define LIS_SAMPLE_RATE   2
+
 // Define instance of LoRa (Pass in 'true' for use with LunaSat interrupts)
 RH_RF95 rf95(RFM95_CS, RFM95_INT, true);
 
 // Define instances of all Sensors
 Adafruit_BME680 bme; 
 ADXL313 adxl;
-Adafruit_LIS3MDL lis3mdl;
+Adafruit_LIS3MDL lis;
 
 unsigned long myTime;
 
 // Define global array to store packages
 static package_t package;
-static int num_pack = 0;
+static int num_pack = 2;
 static int page_num = 0;
 
-int bme_page_start;
-int adxl_page_start;
-int lis_page_start;
 
 void setup() {
   Serial.begin(115200); 
@@ -40,43 +40,46 @@ void setup() {
 
   /* For LIS3MDL, you only need to set it up once. If you try to set it up again 
      without fulling cutting power to the sensor, you will receive a setup failure. */
-  lis3mdl_setup(&lis3mdl);
-  delay(1000);
+  lis_setup(&lis);
+  lis_set_data_rate(&lis, LIS_SAMPLE_RATE);
   
   bme_setup(&bme);
-  delay(1000);
 
   adxl_setup(&adxl);
-  delay(2000);
+  adxl_set_data_rate(&adxl, ADXL_SAMPLE_RATE);
 
   // Serial.println("All Sensors Good!");
 
-  delay(1000);
-
   /* LoRa Setup */
   lora_setup(&rf95, RFM95_RST, true);
-  rf95.setModeRx();
 
-  SPI.setClockDivider(SPI_CLOCK_DIV8);//divide the clock by 8
+  SPI.setClockDivider(SPI_CLOCK_DIV8); 
 
   /* Scheduler Setup */
   scheduler_open();
+
+  eeprom_map_pages(1, ADXL_SAMPLE_RATE, LIS_SAMPLE_RATE);
 
   delay(5000);
 }
 
 void loop() {
-
   // Sample all sensors
-  sample_data(&package, &bme, &adxl, &lis3mdl);
+  bme_sample_data(&bme);
+  adxl_sample_data(&adxl);
+  lis_sample_data(&lis);
 
-  // TODO:
-  // Add in timestamp here and apply to package.
-  package.time_stamp = millis();
+  // uint8_t by[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  // eeprom_store_bytes(by, 10, 0x00);
 
-  // Print contents of pacakge
-  // print_package_for_serial(&package);
+  // delay(50);
 
+  // eeprom_get_bytes(by, 10, 0x00);
+
+  // while(1);
+
+
+  /*
   // Store Package in EEPORM if we can fit it
   if(page_num < 512){
     store_package(&package, page_num);
@@ -92,11 +95,15 @@ void loop() {
     // For now, let's not overwrite existing data.
   }
 
+  */
 
   // Check if we recieved a data request event
   if(get_scheduled_events() & EVENT_DATA_REQUEST){
-    // Serial.println("RX Data Req");
     remove_scheduled_event(EVENT_DATA_REQUEST);
+
+    send_data(&rf95);
+
+
     // Serial.print("Sending "); Serial.print(num_pack); Serial.println(" packages");
 
     /*
@@ -128,35 +135,65 @@ void loop() {
     digitalWrite(RFM95_CS, LOW);
     delay(50);
 
-    //*/
+    /*
 
     
-
+    
     //Serial.println("Send Header");
-    package_header_t header;
-    header.num_packages = page_num;
-    header.current_time = millis();
+    d_header_pack_t header;
+    header.bme_n = get_and_set_bme_count();
+    // Serial.print("BME Count: ");
+    // Serial.println(header.bme_n);
+    header.lis_n = get_and_set_lis_count();
+    header.adxl_n = get_and_set_adxl_count();
+    header.local_time_stamp = millis();
 
     char* header_bytes = reinterpret_cast<char*>(&header);
-    rf95.send((uint8_t *)header_bytes, 6);
+    rf95.send((uint8_t *)header_bytes, sizeof(d_header_pack_t));
     rf95.waitPacketSent();
 
     delay(50);
 
-    //Serial.println("Send Data");
-    package_t package_new;
+    uint8_t samples_per_page = 128 / sizeof(d_bme_pack_t);
+    uint8_t pages = header.bme_n / samples_per_page;
+    uint8_t remainder = header.bme_n % samples_per_page;
 
-    // Send all data from EEPROM (TODO: Condense packages into minimal # of TX)
-    for(int i=0; i < page_num; i++){    
-        // delay(300);
-        get_package(&package_new, i);
+    for(int i=0; i < pages; i++){
+      
+      // array size of 20 * 6 = 120
+      uint8_t num_bytes = sizeof(d_bme_pack_t) * samples_per_page;
+      uint8_t bytes[num_bytes];
 
-        char* package_bytes = reinterpret_cast<char*>(&package_new);
-        rf95.send((uint8_t *)package_bytes, PACKAGE_SIZE);
-        rf95.waitPacketSent();
+      // Only start at i for BME
+      uint16_t address = eeprom_get_address(i, 0);
+
+      // Get bytes from address in eeprom and store in bytes array
+      eeprom_get_bytes(bytes, num_bytes, address);
+
+      delay(100);
+
+      // send the bytes via LoRa
+      rf95.send((uint8_t *)bytes, num_bytes);
+      rf95.waitPacketSent();
+
     }
-    // Reset number of packages in EEPROM
-    page_num = 0;
+
+    uint8_t size = remainder*sizeof(d_bme_pack_t);
+
+    uint8_t bytes[size];
+    uint16_t address = eeprom_get_address(pages, 0);
+
+    Serial.print("size: ");
+    Serial.println(size);
+
+    // Get bytes from address in eeprom and store in bytes array
+    eeprom_get_bytes(bytes, size, address);
+
+    eeprom_reset();
+
+    // send the bytes via LoRa
+    rf95.send((uint8_t *)bytes, size);
+    rf95.waitPacketSent();
 
     // Send stopper signifier
     uint8_t data [] = "END OF DATA";
@@ -174,7 +211,7 @@ void loop() {
     // Serial.println("Done Sending Packages");
     
     rf95.setModeRx();
-
+    //*/
     /*
 
     // Turn off LoRa CS
@@ -252,5 +289,4 @@ void loop() {
 
     //*/
   }
-  delay(3000);
 }
