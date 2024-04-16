@@ -3,7 +3,36 @@ from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import serial
-import time
+from datetime import datetime
+
+counter = 66600
+running = False
+
+lunasats = 0
+
+def count():
+    if running:
+        global counter
+        
+        if counter==66600:
+            display="Starting..."
+        else:
+            tt = datetime.fromtimestamp(counter)
+
+        counter += 1
+    count()
+
+def Start():
+    global running
+    running=True
+    count()
+    running = False
+
+def Reset():
+    global counter
+    counter=66600
+
+
 
 # Serial config
 baud_rate = 115200  # Change this to match the baud rate of your device 115200
@@ -52,78 +81,102 @@ ax2.set_title('Humidity vs Time')
 ax3.set_title('Accelerometer vs Time')
 ax4.set_title('Magnetometer vs Time')
 
+dataLines = []
+
 # Function to read serial data
-def read_serial_data():
+def read_serial_data(start, end):
     if ser.in_waiting > 0:
         line = ser.readline().decode('utf-8').rstrip()  # Read a line and strip newline
         print(line)  # Optional: echo to console
 
+        dataLines.append(line)
+
         # Extract the data points
         data_points = line.split(',')  # Split the line by commas
-        # Parse sensor data
-        if len(data_points) == 11:
-            try:
-                # for data_point in data_points:
-                #     # Check the prefix of the data_point
-                #     if data_point.startswith('L'):
-                #         lunasats = int(data_point[1:])
-                #         lunasats_data.append(lunasats)
-                #     elif data_point.startswith('T'):
-                #         time = int(data_point[1:])
-                #         time_data.append(time)
-                #     elif data_point.startswith('t'):
-                #         temp = float(data_point[1:])
-                #         temp_data.append(temp)
-                #     elif data_point.startswith('h'):
-                #         humidity = float(data_point[1:])
-                #         humidity_data.append(humidity)
-                #     elif data_point.startswith('ax'):
-                #         accelerometer_x = float(data_point[2:])
-                #         accelerometer_x_data.append(accelerometer_x)
-                #     elif data_point.startswith('ay'):
-                #         accelerometer_y = float(data_point[2:])
-                #         accelerometer_y_data.append(accelerometer_y)
-                #     elif data_point.startswith('az'):
-                #         accelerometer_z = float(data_point[2:])
-                #         accelerometer_z_data.append(accelerometer_z)
-                #     elif data_point.startswith('mx'):
-                #         magnetometer_x = float(data_point[2:])
-                #         magnetometer_x_data.append(magnetometer_x)
-                #     elif data_point.startswith('my'):
-                #         magnetometer_y = float(data_point[2:])
-                #         magnetometer_y_data.append(magnetometer_y)
-                #     elif data_point.startswith('mx'):
-                #         magnetometer_z = float(data_point[2:])
-                #         magnetometer_z_data.append(magnetometer_x)
 
-                time = int(data_points[0])
-                temp = float(data_points[1])  # Get the first element as float
-                humidity = float(data_points[2])  # Get the second element as float
-                accelerometer_x = float(data_points[5])
-                accelerometer_y = float(data_points[6])  # Get the 6th element as float (Accel y-data)
-                accelerometer_z = float(data_points[7])
-                magnetometer_x = float(data_points[8])
-                magnetometer_y = float(data_points[9])
-                magnetometer_z = float(data_points[10])  # Get the 10th element as float (Mag z-data)
+        for i in dataLines[start:end]:
+            # Parse sensor data
+            if len(data_points) == 11:
+                try:
+                    for data_point in data_points:
+                        # Check the prefix of the data_point
+                        # if data_point.startswith('L'):
+                        #     lunasats =+ int(data_point[1:])
+                        #     lunasats_data.append(lunasats)
+                        if data_point.startswith('T'):
+                            time = int(data_point[1:])
+                            time_data.append(time)
+                        elif data_point.startswith('t'):
+                            temp = float(data_point[1:])
+                            temp_data.append(temp)
+                        elif data_point.startswith('h'):
+                            humidity = float(data_point[1:])
+                            humidity_data.append(humidity)
+                        elif data_point.startswith('ax'):
+                            accelerometer_x = float(data_point[2:])
+                            accelerometer_x_data.append(accelerometer_x)
+                        elif data_point.startswith('ay'):
+                            accelerometer_y = float(data_point[2:])
+                            accelerometer_y_data.append(accelerometer_y)
+                        elif data_point.startswith('az'):
+                            accelerometer_z = float(data_point[2:])
+                            accelerometer_z_data.append(accelerometer_z)
+                        elif data_point.startswith('mx'):
+                            magnetometer_x = float(data_point[2:])
+                            magnetometer_x_data.append(magnetometer_x)
+                        elif data_point.startswith('my'):
+                            magnetometer_y = float(data_point[2:])
+                            magnetometer_y_data.append(magnetometer_y)
+                        elif data_point.startswith('mx'):
+                            magnetometer_z = float(data_point[2:])
+                            magnetometer_z_data.append(magnetometer_x)
 
-                # Append data to lists
-                time_data.append(time)
-                # time_data.append(len(time_data) + 1)  # Assuming time is just the number of readings
-                temp_data.append(temp)
-                humidity_data.append(humidity)
-                accelerometer_x_data.append(accelerometer_x)
-                accelerometer_y_data.append(accelerometer_y)
-                accelerometer_z_data.append(accelerometer_z)
-                magnetometer_x_data.append(magnetometer_x)
-                magnetometer_y_data.append(magnetometer_y)
-                magnetometer_z_data.append(magnetometer_z)
-            except ValueError:
-                print("Data Empty")
-                return
+                    # time = int(data_points[0])
+                    # temp = float(data_points[1])  # Get the first element as float
+                    # humidity = float(data_points[2])  # Get the second element as float
+                    # accelerometer_x = float(data_points[5])
+                    # accelerometer_y = float(data_points[6])  # Get the 6th element as float (Accel y-data)
+                    # accelerometer_z = float(data_points[7])
+                    # magnetometer_x = float(data_points[8])
+                    # magnetometer_y = float(data_points[9])
+                    # magnetometer_z = float(data_points[10])  # Get the 10th element as float (Mag z-data)
+
+                    # # Append data to lists
+                    # time_data.append(time)
+                    # # time_data.append(len(time_data) + 1)  # Assuming time is just the number of readings
+                    # temp_data.append(temp)
+                    # humidity_data.append(humidity)
+                    # accelerometer_x_data.append(accelerometer_x)
+                    # accelerometer_y_data.append(accelerometer_y)
+                    # accelerometer_z_data.append(accelerometer_z)
+                    # magnetometer_x_data.append(magnetometer_x)
+                    # magnetometer_y_data.append(magnetometer_y)
+                    # magnetometer_z_data.append(magnetometer_z)
+                except ValueError:
+                    print("Data Empty")
+                    return
 
 # Function to update the plot
 def update(frame):
-    read_serial_data()  # Read serial data
+    Start()
+    start = None
+    end = None
+    val = input('Enter which LunaSat would you like to read from\n')
+    if val == 1:
+        start = 1
+        end = 5
+    elif val == 2:
+        start = 6
+        end = 10
+    read_serial_data(start, end)  # Read serial data
+
+    if counter > 5: #Adjust to fit proper package size
+        # Do some stuff to read package size
+        for numLines in dataLines %5: # Adjust per packet size
+            lunasats =+ 1
+        else:
+            lunasats = 0
+        Reset()
 
     for line, data in zip(lines, [temp_data, humidity_data, accelerometer_x_data, accelerometer_y_data, accelerometer_z_data, magnetometer_x_data, magnetometer_y_data, magnetometer_z_data]):
         line.set_data(time_data, data)
@@ -142,6 +195,8 @@ def update(frame):
     ax3.set_ylim(-30, 30)       # Accelerometer
     ax4.set_ylim(-33000, 33000) # Magnetometer
 
+    visual_connections(lunasats)
+
     return lines
 
 # Create animation
@@ -153,8 +208,6 @@ class LunaSat:
         self.value = value
         self.position = (x, y, z)
         self.color = color
-
-lunasats = [1, 2, 3]
 
 def visual_connections(lunasats):
     objects_dict = {}
@@ -184,14 +237,14 @@ def visual_connections(lunasats):
     ax.set_zlim(0,10)
     ax.grid(True, color='white')  # Setting the grid color to white
 
-visual_connections(lunasats)
+# visual_connections(lunasats)
 
-initial_lunasats = len(lunasats)
-current_lunasats = [1,2,3,4] # change to read serial data "lunasats"
+# initial_lunasats = lunasats
+# current_lunasats = [1,2,3,4] # change to read serial data "lunasats"
 
-if current_lunasats != initial_lunasats:
-    plt.close(2)
-    visual_connections(current_lunasats)
+# if current_lunasats != initial_lunasats:
+#     plt.close(2)
+#     visual_connections(current_lunasats)
 
 
 plt.show()
