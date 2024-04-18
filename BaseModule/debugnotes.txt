@@ -1,0 +1,20 @@
+04/16 Debug Notes
+
+Noticed that LIS stops sending accurate data after its 13th sample.
+
+ie it will send 13 correc measurments and then still sends decent looking data but not what we had measured.
+
+Also noticed a glitch where LIS will send ADXL data for some reason.
+During this glitch there was no bme data sent or sampled from LunaSat.
+
+Check why BME sometimes doesn't sample 
+
+Also check why the data stops being any good.
+
+Running out of local var storage and data starts to reset sometimes. Need 600+ bytes of local storage.
+
+
+
+Everything after first byte of last page being sent is incorrect data / off by a little.
+
+The data is actually the data of the previous page after the first data pt.

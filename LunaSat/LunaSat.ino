@@ -19,21 +19,17 @@ Adafruit_LIS3MDL lis;
 
 unsigned long myTime;
 
-// Define global array to store packages
-static package_t package;
-static int num_pack = 2;
-static int page_num = 0;
-
-
 void setup() {
   Serial.begin(115200); 
   while (!Serial) delay(1);
   delay(1000);
 
 
+   Serial.println("Test");
+
   // Setup ATTiny and disable CS
-  pinMode(ATTINY_CS, OUTPUT);
-  digitalWrite(ATTINY_CS, HIGH);
+  // pinMode(ATTINY_CS, OUTPUT);
+  // digitalWrite(ATTINY_CS, HIGH);
 
   /* Sensor Setup */
   // Serial.println("Begin Sensor Setup");
@@ -48,8 +44,6 @@ void setup() {
   adxl_setup(&adxl);
   adxl_set_data_rate(&adxl, ADXL_SAMPLE_RATE);
 
-  // Serial.println("All Sensors Good!");
-
   /* LoRa Setup */
   lora_setup(&rf95, RFM95_RST, true);
 
@@ -59,6 +53,8 @@ void setup() {
   scheduler_open();
 
   eeprom_map_pages(1, ADXL_SAMPLE_RATE, LIS_SAMPLE_RATE);
+
+  Serial.println("Setup Good");
 
   delay(5000);
 }
@@ -79,23 +75,6 @@ void loop() {
   // while(1);
 
 
-  /*
-  // Store Package in EEPORM if we can fit it
-  if(page_num < 512){
-    store_package(&package, page_num);
-    // Serial.print("Storing package on page ");
-    // Serial.println(page_num);
-    print_package_for_serial(&package);
-    page_num++;
-  }
-  else{
-    // reset page_num and start overwriting existing measurments
-    // page_num = 0;
-
-    // For now, let's not overwrite existing data.
-  }
-
-  */
 
   // Check if we recieved a data request event
   if(get_scheduled_events() & EVENT_DATA_REQUEST){
