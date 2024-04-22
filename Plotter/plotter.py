@@ -11,7 +11,7 @@ lunasats = []
 baud_rate = 115200  # Change this to match the baud rate of your device 115200
 # FOR GINN ONLY
 # serial_port = "usbmodem143101"
-serial_port = "/dev/tty.usbmodem142101"
+serial_port = "/dev/tty.usbmodem14101"
 
 # Initialize the serial connection
 ser = serial.Serial(serial_port, baud_rate)
@@ -113,7 +113,6 @@ def add_unique_lunasat(data_points):
     
 
 # Function to read serial data
-def read_serial_data():
 def read_serial_data():
     if ser.in_waiting > 0:
         line = ser.readline().decode('utf-8').rstrip()  # Read a line and strip newline
