@@ -11,7 +11,7 @@ lunasats = []
 baud_rate = 115200  # Change this to match the baud rate of your device 115200
 # FOR GINN ONLY
 # serial_port = "usbmodem143101"
-serial_port = "/dev/tty.usbmodem143201"
+serial_port = "/dev/tty.usbmodem14201"
 
 # Initialize the serial connection
 ser = serial.Serial(serial_port, baud_rate)
@@ -295,6 +295,22 @@ def update_graph2(frame):
     else:
         print("Data entry empty")
 
+# def update_table(frame):
+#     ax4.table()
+
+# columns = ['BME_Time', 'ADXL_Time', 'LIS_Time']
+
+# fig4, ax_4 = plt.subplots()
+# ax_4.table(cellText=None, colLabels=columns, loc='center')
+
+
+# def update(frame):
+#     for i in range(len(data)):
+#         for j in range(len(data[i])):
+#             data[i][j] = randint(0, 100)
+#     ax.clear()
+#     ax.table(cellText=data, loc='center')
+
 # Define a dictionary to store data for each satellite
 satellites_data = {
     'luna_sat1': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
@@ -303,7 +319,7 @@ satellites_data = {
                   'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
 }
 
-fig3D = plt.figure(figsize=(6, 6))
+fig3D = plt.figure(figsize=(12,6))
 ax_3d = fig3D.add_subplot(121, projection='3d')
 
 
