@@ -208,7 +208,7 @@ void loop() {
   uint8_t len = sizeof(buf);
 
   // Wait 4 seconds for data reply
-  if (rf95.waitAvailableTimeout(4000)) {
+  if (rf95.waitAvailableTimeout(10000)) {
     // Should be a reply message for us now
 
     int time_offset = 0;
@@ -334,5 +334,7 @@ void loop() {
   else{
     lunaSatNum = 1;
   }
+
+  // Serial.println(lunaSatNum);
 
 }

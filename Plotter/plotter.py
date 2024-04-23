@@ -11,7 +11,7 @@ lunasats = []
 baud_rate = 115200  # Change this to match the baud rate of your device 115200
 # FOR GINN ONLY
 # serial_port = "usbmodem143101"
-serial_port = "/dev/tty.usbmodem14101"
+serial_port = "/dev/tty.usbmodem143201"
 
 # Initialize the serial connection
 ser = serial.Serial(serial_port, baud_rate)

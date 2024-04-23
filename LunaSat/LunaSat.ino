@@ -28,8 +28,8 @@ void setup() {
    Serial.println("Test");
 
   // Setup ATTiny and disable CS
-  // pinMode(ATTINY_CS, OUTPUT);
-  // digitalWrite(ATTINY_CS, HIGH);
+  pinMode(ATTINY_CS, OUTPUT);
+  digitalWrite(ATTINY_CS, HIGH);
 
   /* Sensor Setup */
   // Serial.println("Begin Sensor Setup");
@@ -65,23 +65,9 @@ void loop() {
   adxl_sample_data(&adxl);
   lis_sample_data(&lis);
 
-  // uint8_t by[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  // eeprom_store_bytes(by, 10, 0x00);
-
-  // delay(50);
-
-  // eeprom_get_bytes(by, 10, 0x00);
-
-  // while(1);
-
-
-
   // Check if we recieved a data request event
   if(get_scheduled_events() & EVENT_DATA_REQUEST){
     remove_scheduled_event(EVENT_DATA_REQUEST);
-
-    send_data(&rf95);
-
 
     // Serial.print("Sending "); Serial.print(num_pack); Serial.println(" packages");
 
@@ -102,10 +88,10 @@ void loop() {
     delay(50);
     if(SPDR != 0x03){
       Serial.println("STUCK HERE 1");
-      while(1); 
+      // while(1); 
     }
    
-    Serial.println("========= Started collection =========");
+    Serial.println("=== Started collection ==");
     
     // Disable Slave select for ATTiny
     digitalWrite(ATTINY_CS, HIGH);
@@ -114,10 +100,12 @@ void loop() {
     digitalWrite(RFM95_CS, LOW);
     delay(50);
 
-    /*
 
-    
-    
+
+    // send_data(&rf95);
+
+    /*
+  
     //Serial.println("Send Header");
     d_header_pack_t header;
     header.bme_n = get_and_set_bme_count();
@@ -191,11 +179,15 @@ void loop() {
     
     rf95.setModeRx();
     //*/
+
+    send_data(&rf95);
+
+
     /*
 
     // Turn off LoRa CS
     digitalWrite(RFM95_CS, HIGH);
-    
+    delay(50);
     // Enable Slave select for ATTiny
     digitalWrite(ATTINY_CS, LOW);
     delay(50);
@@ -205,16 +197,30 @@ void loop() {
     delay(50);
     SPI.transfer(0xFF);
     delay(50);
-    if(SPDR != 0x04){
+    uint8_t resp = SPDR;
+    if(resp != 0x04){
+      Serial.println(resp);
       Serial.println("STUCK HERE 2");
-      while(1);
+      // while(1);
+
+      SPI.transfer(0x02);
+      delay(50);
+      SPI.transfer(0xFF);
+      delay(50);
+      uint8_t resp2 = SPDR;
+      if(resp2 != 0x04){
+        Serial.println(resp2);
+        Serial.println("STUCK HERE 3");
+        // while(1);
+      }
     }
     
     int iter = 0;
     int time_step = 0;
     int prev_time = 0;
+    uint16_t sum = 0;
 
-    Serial.println("========= Started data retreival =========");
+    Serial.println("=== Started data retreival ===");
     while (true){
       iter ++;
       SPI.transfer(0x03);
@@ -222,14 +228,12 @@ void loop() {
       SPI.transfer(0xFF);
       delay(50);
       uint8_t highByte = SPDR;
-      Serial.println(highByte);
-      delay(50);
+      // delay(50);
       SPI.transfer(0x03);
       delay(50);
       SPI.transfer(0xFF);
       delay(50);
       uint8_t lowByte = SPDR;
-      Serial.println(lowByte);
       uint16_t analogValue = ((highByte & 0x3) << 8) | lowByte;
       uint16_t time = (highByte >> 2);
 
@@ -242,7 +246,12 @@ void loop() {
       if(lowByte == 0)
         break;
 
-      float current = 1000* (3.3 * analogValue)/(1.5 * 22 * 1024 + 1.5 * analogValue);
+      sum += analogValue;
+      
+      if (iter > 100)
+        break;
+
+      float current = 1000* (3.3 * analogValue)/(1.5 * 20 * 1024 + 1.5 * analogValue);
       Serial.print(iter);
       Serial.print(" - ");
       Serial.print("Time: ");
@@ -258,14 +267,26 @@ void loop() {
       Serial.print(lowByte, HEX);
       Serial.println();
     }
-  Serial.println("========= Finished =========");
+    uint16_t avg_analogVal = sum / iter;
 
+    float avg = 1000* (3.3 * avg_analogVal)/(1.5 * 20 * 1024 + 1.5 * avg_analogVal);
+
+    Serial.print("Collected ");
+    Serial.print(iter);
+    Serial.print(" data points, average: ");
+    Serial.println(avg);
+    Serial.println("=== Finished ==");
+    
+    delay(500);
     // Disable Slave select for ATTiny
     digitalWrite(ATTINY_CS, HIGH);
 
     // Turn on LoRa CS
     digitalWrite(RFM95_CS, LOW);
+    delay(500);
 
     //*/
+    rf95.setModeRx();
+    delay(500);
   }
 }
