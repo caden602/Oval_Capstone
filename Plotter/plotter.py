@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from mpl_toolkits.mplot3d import Axes3D
-from collections import defaultdict
+from matplotlib.widgets import Button
+import pandas as pd
 import numpy as np
 import serial
 
@@ -50,7 +50,6 @@ mx_line4, = ax4.plot([], [], lw=2, label='Magnetometer x')
 my_line4, = ax4.plot([], [], lw=2, label='Magnetometer y')
 mz_line4, = ax4.plot([], [], lw=2, label='Magnetometer z')
 axes = [ax1, ax2, ax3, ax4]
-lines = [temp_line1, humidity_line2, ax_line3, ay_line3, az_line3, mx_line4, my_line4, mz_line4]
 lines = [temp_line1, humidity_line2, ax_line3, ay_line3, az_line3, mx_line4, my_line4, mz_line4]
 
 for ax in axes:
@@ -116,56 +115,60 @@ def add_unique_lunasat(data_points):
 def read_serial_data():
     if ser.in_waiting > 0:
         line = ser.readline().decode('utf-8').rstrip()  # Read a line and strip newline
-        print(line)  # Optional: echo to console
+        print("Line:",line)  # Optional: echo to console
 
         # Extract the data points
         data_points = line.split(',')  # Split the line by commas
 
-        print(data_points)
+        print("Data points:", data_points)
 
         # Parse sensor data
         if len(data_points) >= 2:
             try:
                 add_unique_lunasat(data_points)
-                current_lunasat = data_points[1]
-                
-                current_sensor = data_points[0]
-                if data_points[0] == 'BME':
-                    # lunasat = int(data_points[1])
+
+                sensor_name = data_points[0]
+                luna_sat_num = data_points[1]
+
+                if sensor_name == 'BME':
                     time = int(data_points[2])
-                    time_BME_data.append(time)  
                     temp = float(data_points[3])
-                    temp_data.append(temp)
                     humidity = float(data_points[4])
-                    humidity_data.append(humidity)
-                    return current_sensor
-                elif data_points[0] == 'ADXL':
-                    # lunasat = int(data_points[1])
+                    satellites_data['luna_sat'+luna_sat_num]['time_BME'].append(time)
+                    satellites_data['luna_sat'+luna_sat_num]['temperature'].append(temp)
+                    satellites_data['luna_sat'+luna_sat_num]['humidity'].append(humidity)
+                    return sensor_name
+                elif sensor_name == 'ADXL':
                     time = int(data_points[2])
-                    time_ADXL_data.append(time)  
                     accelerometer_x = float(data_points[3])
-                    accelerometer_x_data.append(accelerometer_x)
                     accelerometer_y = float(data_points[4])
-                    accelerometer_y_data.append(accelerometer_y)
                     accelerometer_z = float(data_points[5])
-                    accelerometer_z_data.append(accelerometer_z)
-                    return current_sensor
-                elif data_points[0] == 'LIS':
-                    # lunasat = int(data_points[1])
+                    satellites_data['luna_sat'+luna_sat_num]['time_ADXL'].append(time)
+                    satellites_data['luna_sat'+luna_sat_num]['accelerometer_x'].append(accelerometer_x)
+                    satellites_data['luna_sat'+luna_sat_num]['accelerometer_y'].append(accelerometer_y)
+                    satellites_data['luna_sat'+luna_sat_num]['accelerometer_z'].append(accelerometer_z)
+                    return sensor_name
+                elif sensor_name == 'LIS':
                     time = int(data_points[2])
-                    time_LIS_data.append(time)  
                     magnetometer_x = float(data_points[3])
-                    magnetometer_x_data.append(magnetometer_x)
                     magnetometer_y = float(data_points[4])
-                    magnetometer_y_data.append(magnetometer_y)
                     magnetometer_z = float(data_points[5])
-                    magnetometer_z_data.append(magnetometer_z)
-                    return current_sensor
+                    satellites_data['luna_sat'+luna_sat_num]['time_LIS'].append(time)
+                    satellites_data['luna_sat'+luna_sat_num]['magnetometer_x'].append(magnetometer_x)
+                    satellites_data['luna_sat'+luna_sat_num]['magnetometer_y'].append(magnetometer_y)
+                    satellites_data['luna_sat'+luna_sat_num]['magnetometer_z'].append(magnetometer_z)
+                    return sensor_name
                 else:
                     print("ERROR NO DATA FOUND")
+                    return None
+
             except ValueError:
                 print("Data Empty")
-                return
+                return None
+        else:
+            return None
+    else:
+        return None
 
 class LunaSat:
     def __init__(self, value, x, y, z, color):
@@ -201,28 +204,43 @@ def update_graph(frame):
     # val = input('Enter which LunaSat would you like to read from\n')
         
     current_sensor = read_serial_data()  # Read serial data
+    current_lunasat = '1'
 
-    if current_sensor == 'BME':
-        for line, data in zip(lines[0:2], [temp_data, humidity_data]):
-            line.set_data(time_BME_data, data)
-    elif current_sensor == 'ADXL':
-        for line, data in zip(lines[2:5], [accelerometer_x_data, accelerometer_y_data, accelerometer_z_data]):
-            line.set_data(time_ADXL_data, data)
-    elif current_sensor == 'LIS':
-        for line, data in zip(lines[5:8], [magnetometer_x_data, magnetometer_y_data, magnetometer_z_data]):
-            line.set_data(time_LIS_data, data)
+    if current_sensor and current_lunasat != None:
+        if current_sensor == 'BME':
+            for line, data in zip(lines[0:2], [satellites_data['luna_sat'+current_lunasat]['temperature'], 
+                                            satellites_data['luna_sat'+current_lunasat]['humidity']]):
+                line.set_data(satellites_data['luna_sat'+current_lunasat]['time_BME'], data)
+        elif current_sensor == 'ADXL':
+            for line, data in zip(lines[2:5], [satellites_data['luna_sat'+current_lunasat]['accelerometer_x'],
+                                               satellites_data['luna_sat'+current_lunasat]['accelerometer_y'],
+                                               satellites_data['luna_sat'+current_lunasat]['accelerometer_z']]):
+                line.set_data(satellites_data['luna_sat'+current_lunasat]['time_ADXL'], data)
+        elif current_sensor == 'LIS':
+            for line, data in zip(lines[5:8], [satellites_data['luna_sat'+current_lunasat]['magnetometer_x'],
+                                               satellites_data['luna_sat'+current_lunasat]['magnetometer_y'],
+                                               satellites_data['luna_sat'+current_lunasat]['magnetometer_z']]):
+                line.set_data(satellites_data['luna_sat'+current_lunasat]['time_LIS'], data)
+            
+        for ax in axes:
+            ax.relim()
+            ax.autoscale_view()
+            ax.set_xticks([])
+        # Set Bounds
+        ax1.set_ylim(0, 100)        # Temp
+        ax2.set_ylim(0, 100)         # Humidity
+        ax3.set_ylim(-550, 550)       # Accelerometer
+        ax4.set_ylim(-33000, 33000) # Magnetometer 
+    else:
+        print("Data entry empty")
 
-        
-    for ax in axes:
-        ax.relim()
-        ax.autoscale_view()
-        ax.set_xticks([])
-    # Set Bounds
-    ax1.set_ylim(0, 100)        # Temp
-    ax2.set_ylim(0, 100)         # Humidity
-    ax3.set_ylim(-550, 550)       # Accelerometer
-    ax4.set_ylim(-33000, 33000) # Magnetometer 
-
+# Define a dictionary to store data for each satellite
+satellites_data = {
+    'luna_sat1': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
+                  'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
+    'luna_sat2': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
+                  'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
+}
 
 fig2 = plt.figure(figsize=(6, 6))
 ax_3d = fig2.add_subplot(121, projection='3d')
