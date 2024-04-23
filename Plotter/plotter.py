@@ -64,6 +64,33 @@ ax2.set_title('Humidity vs Time')
 ax3.set_title('Accelerometer vs Time')
 ax4.set_title('Magnetometer vs Time')
 
+
+# Create figure and axis objects
+fig2, ((ax1_2, ax2_2), (ax3_2, ax4_2)) = plt.subplots(2, 2)
+temp_line1_2, = ax1_2.plot([], [], lw=2, label='Temperature')
+humidity_line2_2, = ax2_2.plot([], [], lw=2, label='Humidity')
+ax_line3_2, = ax3_2.plot([], [], lw=2, label='Accelerometer x')
+ay_line3_2, = ax3_2.plot([], [], lw=2, label='Accelerometer y')
+az_line3_2, = ax3_2.plot([], [], lw=2, label='Accelerometer z')
+mx_line4_2, = ax4_2.plot([], [], lw=2, label='Magnetometer x')
+my_line4_2, = ax4_2.plot([], [], lw=2, label='Magnetometer y')
+mz_line4_2, = ax4_2.plot([], [], lw=2, label='Magnetometer z')
+axes_2 = [ax1_2, ax2_2, ax3_2, ax4_2]
+lines_2 = [temp_line1_2, humidity_line2_2, ax_line3_2, ay_line3_2, az_line3_2, mx_line4_2, my_line4_2, mz_line4_2]
+
+for ax_2 in axes_2:
+    ax_2.set_xlabel('Time')
+ax1_2.set_ylabel('Temperature (C)')
+ax2_2.set_ylabel('Humidity (g/kg)')
+ax3_2.set_ylabel('Accelerometer (G)')
+ax4_2.set_ylabel('Magnetometer (uTesla)')
+
+ax1_2.set_title('Temperature vs Time')
+ax2_2.set_title('Humidity vs Time')
+ax3_2.set_title('Accelerometer vs Time')
+ax4_2.set_title('Magnetometer vs Time')
+
+
 def add_unique_lunasat(data_points):
     global counter1
     global counter2
@@ -234,6 +261,40 @@ def update_graph(frame):
     else:
         print("Data entry empty")
 
+def update_graph2(frame):
+    # val = input('Enter which LunaSat would you like to read from\n')
+        
+    current_sensor = read_serial_data()  # Read serial data
+    current_lunasat = '2'
+
+    if current_sensor and current_lunasat != None:
+        if current_sensor == 'BME':
+            for line, data in zip(lines_2[0:2], [satellites_data['luna_sat'+current_lunasat]['temperature'], 
+                                            satellites_data['luna_sat'+current_lunasat]['humidity']]):
+                line.set_data(satellites_data['luna_sat'+current_lunasat]['time_BME'], data)
+        elif current_sensor == 'ADXL':
+            for line, data in zip(lines_2[2:5], [satellites_data['luna_sat'+current_lunasat]['accelerometer_x'],
+                                               satellites_data['luna_sat'+current_lunasat]['accelerometer_y'],
+                                               satellites_data['luna_sat'+current_lunasat]['accelerometer_z']]):
+                line.set_data(satellites_data['luna_sat'+current_lunasat]['time_ADXL'], data)
+        elif current_sensor == 'LIS':
+            for line, data in zip(lines_2[5:8], [satellites_data['luna_sat'+current_lunasat]['magnetometer_x'],
+                                               satellites_data['luna_sat'+current_lunasat]['magnetometer_y'],
+                                               satellites_data['luna_sat'+current_lunasat]['magnetometer_z']]):
+                line.set_data(satellites_data['luna_sat'+current_lunasat]['time_LIS'], data)
+            
+        for ax_2 in axes_2:
+            ax_2.relim()
+            ax_2.autoscale_view()
+            ax_2.set_xticks([])
+        # Set Bounds
+        ax1_2.set_ylim(0, 100)        # Temp
+        ax2_2.set_ylim(0, 100)         # Humidity
+        ax3_2.set_ylim(-550, 550)       # Accelerometer
+        ax4_2.set_ylim(-33000, 33000) # Magnetometer 
+    else:
+        print("Data entry empty")
+
 # Define a dictionary to store data for each satellite
 satellites_data = {
     'luna_sat1': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
@@ -242,12 +303,13 @@ satellites_data = {
                   'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
 }
 
-fig2 = plt.figure(figsize=(6, 6))
-ax_3d = fig2.add_subplot(121, projection='3d')
+fig3D = plt.figure(figsize=(6, 6))
+ax_3d = fig3D.add_subplot(121, projection='3d')
 
 
-anim1 = FuncAnimation(fig1, update_graph, frames=20, interval=500)
-anim2 = FuncAnimation(fig2, update_plot, fargs=(ax_3d,), frames=20, interval=500)
+anim0 = FuncAnimation(fig1, update_graph, frames=20, interval=500)
+anim1 = FuncAnimation(fig2, update_graph2, frames=20, interval=500)
+anim2 = FuncAnimation(fig3D, update_plot, fargs=(ax_3d,), frames=20, interval=500)
 
 plt.show()
 
