@@ -84,10 +84,10 @@ def create_2D_window_instances(num_instances):
         # Enable antialiasing for prettier plots
         pg.setConfigOptions(antialias=True)
 
-        p1 = instances[f"win{i}"].addPlot(title="Temperature vs Time")
+        p1 = instances[f"win{i}"].addPlot(title="Temperature (C°) vs Time (s)")
         c1 = p1.plot(pen='y', symbolPen='r')
 
-        p2 = instances[f"win{i}"].addPlot(title="Humidity vs Time")
+        p2 = instances[f"win{i}"].addPlot(title="Humidity () vs Time (s)")
         c2 = p2.plot(pen='g', symbolPen='r')
 
         # def update():
@@ -135,21 +135,21 @@ def create_plots(num_tabs):
         else:
             area.addDock(dock, 'above', docks[0])
 
-        p1 = pg.PlotWidget(title="Temperature vs Time")
-        c1 = p1.plot(pen='y', symbolPen='r')
+        p1 = pg.PlotWidget(title="Temperature (C°) vs Time (s)")
+        c1 = p1.plot(pen='y', symbolPen='r',symbolBrush='r')
 
-        p2 = pg.PlotWidget(title="Humidity vs Time")
-        c2 = p2.plot(pen='y', symbolPen='r')
+        p2 = pg.PlotWidget(title="Humidity (%) vs Time (s)")
+        c2 = p2.plot(pen='y', symbolPen='r',symbolBrush='r')
 
-        p3   = pg.PlotWidget(title="Accelerometer vs Time")
-        c3_x = p3.plot(pen='r', symbolPen='r')
-        c3_y = p3.plot(pen='g', symbolPen='r')
-        c3_z = p3.plot(pen='b', symbolPen='r')
+        p3   = pg.PlotWidget(title="Accelerometer (mG) vs Time (s)")
+        c3_x = p3.plot(pen='r', symbolPen='r',symbolBrush='r')
+        c3_y = p3.plot(pen='g', symbolPen='r',symbolBrush='r')
+        c3_z = p3.plot(pen='b', symbolPen='r',symbolBrush='r')
 
-        p4   = pg.PlotWidget(title="Magnetometer vs Time")
-        c4_x = p4.plot(pen='r', symbolPen='r')
-        c4_y = p4.plot(pen='g', symbolPen='r')
-        c4_z = p4.plot(pen='b', symbolPen='r')
+        p4   = pg.PlotWidget(title="Magnetometer (Gaus) vs Time (s)")
+        c4_x = p4.plot(pen='r', symbolPen='r',symbolBrush='r')
+        c4_y = p4.plot(pen='g', symbolPen='r',symbolBrush='r')
+        c4_z = p4.plot(pen='b', symbolPen='r',symbolBrush='r')
         
         widgets.append(p1)
         widgets.append(p2)
