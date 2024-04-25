@@ -2,7 +2,7 @@ import serial
 
 # Serial config
 baud_rate = 115200  # Change this to match the baud rate of your device 115200
-serial_port = "/dev/tty.usbmodem141201"
+serial_port = "/dev/tty.usbmodem14201"
 
 # Initialize the serial connection
 ser = serial.Serial(serial_port, baud_rate)
@@ -34,6 +34,12 @@ satellites_data = {
     'luna_sat1': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
                   'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
     'luna_sat2': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
+                  'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
+    'luna_sat3': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
+                  'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
+    'luna_sat4': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
+                  'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
+    'luna_sat5': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
                   'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
 }
 

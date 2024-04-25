@@ -128,9 +128,8 @@ def create_plots(num_tabs):
 
     for i in range(num_tabs):
         global c1, c2
-        dock = Dock(f"Dock {i+1} (tabbed) - Plot", size=(500, 200))
+        dock = Dock(f"LunaSat {i+1}", size=(500, 200))
         docks.append(dock)
-        print("Docks",dock)
         if i == 0:
             area.addDock(dock, 'top')
         else:
@@ -138,45 +137,133 @@ def create_plots(num_tabs):
 
         p1 = pg.PlotWidget(title="Temperature vs Time")
         c1 = p1.plot(pen='y', symbolPen='r')
+
         p2 = pg.PlotWidget(title="Humidity vs Time")
         c2 = p2.plot(pen='y', symbolPen='r')
+
+        p3   = pg.PlotWidget(title="Accelerometer vs Time")
+        c3_x = p3.plot(pen='r', symbolPen='r')
+        c3_y = p3.plot(pen='g', symbolPen='r')
+        c3_z = p3.plot(pen='b', symbolPen='r')
+
+        p4   = pg.PlotWidget(title="Magnetometer vs Time")
+        c4_x = p4.plot(pen='r', symbolPen='r')
+        c4_y = p4.plot(pen='g', symbolPen='r')
+        c4_z = p4.plot(pen='b', symbolPen='r')
         
         widgets.append(p1)
         widgets.append(p2)
+        widgets.append(p3)
+        widgets.append(p4)
 
         dock.addWidget(p1)
-        dock.addWidget(p2)            
+        dock.addWidget(p2)     
+        dock.addWidget(p3)       
+        dock.addWidget(p4)
 
         timer = QtCore.QTimer()
-        timer.timeout.connect(lambda c1=c1, c2=c2: update_plot(c1, c2))
+        timer.timeout.connect(lambda c1=c1, c2=c2, c3_x=c3_x, c3_y=c3_y, c3_z=c3_z, 
+                              c4_x=c4_x, c4_y=c4_y, c4_z=c4_z, i=i: 
+                              update_plot(c1, c2, c3_x, c3_y, c3_z, c4_x, c4_y, c4_z, i))
         timer.start(50)
         timers.append(timer)
 
+    # Enable antialiasing for prettier plots
+    pg.setConfigOptions(antialias=True)
     win.show()
     pg.exec()
 
-def update_plot(*curves):
+def update_plot(c1, c2, c3_x, c3_y, c3_z, c4_x, c4_y, c4_z, tab_index):
     sh.read_serial_data()
 
-    if sh.luna_sat_num != None:
-        satellite_data = SatelliteData(sh.satellites_data['luna_sat'+sh.luna_sat_num])
-    else:
+    if tab_index == 0:
         satellite_data = SatelliteData(sh.satellites_data['luna_sat1'])
+        # BME
+        y1 = satellite_data.time_BME_data
+        x1 = satellite_data.temp_data
+        c1.setData(y1, x1)
+        y2 = y1
+        x2 = satellite_data.humidity_data
+        c2.setData(y2, x2)
+        # ADXL
+        y3   = satellite_data.time_ADXL_data
+        x3_x = satellite_data.accelerometer_x_data
+        x3_y = satellite_data.accelerometer_y_data
+        x3_z = satellite_data.accelerometer_z_data
+        c3_x.setData(y3,x3_x)
+        c3_y.setData(y3,x3_y)
+        c3_z.setData(y3,x3_z)
+        # LIS
+        y4  = satellite_data.time_LIS_data
+        x4_x = satellite_data.magnetometer_x_data
+        x4_y = satellite_data.magnetometer_y_data
+        x4_z = satellite_data.magnetometer_z_data
+        c4_x.setData(y4,x4_x)
+        c4_y.setData(y4,x4_y)
+        c4_z.setData(y4,x4_z)
+    elif tab_index == 1:
+        satellite_data = SatelliteData(sh.satellites_data['luna_sat2'])
+        # BME
+        y1 = satellite_data.time_BME_data
+        x1 = satellite_data.temp_data
+        c1.setData(y1, x1)
+        y2 = y1
+        x2 = satellite_data.humidity_data
+        c2.setData(y2, x2)
+        # ADXL
+        y3   = satellite_data.time_ADXL_data
+        x3_x = satellite_data.accelerometer_x_data
+        x3_y = satellite_data.accelerometer_y_data
+        x3_z = satellite_data.accelerometer_z_data
+        c3_x.setData(y3,x3_x)
+        c3_y.setData(y3,x3_y)
+        c3_z.setData(y3,x3_z)
+        # LIS
+        y4  = satellite_data.time_LIS_data
+        x4_x = satellite_data.magnetometer_x_data
+        x4_y = satellite_data.magnetometer_y_data
+        x4_z = satellite_data.magnetometer_z_data
+        c4_x.setData(y4,x4_x)
+        c4_y.setData(y4,x4_y)
+        c4_z.setData(y4,x4_z)
+    elif tab_index == 2:
+        satellite_data = SatelliteData(sh.satellites_data['luna_sat3'])
+        # BME
+        y1 = satellite_data.time_BME_data
+        x1 = satellite_data.temp_data
+        c1.setData(y1, x1)
+        y2 = y1
+        x2 = satellite_data.humidity_data
+        c2.setData(y2, x2)
+        # ADXL
+        y3   = satellite_data.time_ADXL_data
+        x3_x = satellite_data.accelerometer_x_data
+        x3_y = satellite_data.accelerometer_y_data
+        x3_z = satellite_data.accelerometer_z_data
+        c3_x.setData(y3,x3_x)
+        c3_y.setData(y3,x3_y)
+        c3_z.setData(y3,x3_z)
+        
+    elif tab_index == 3:
+        satellite_data = SatelliteData(sh.satellites_data['luna_sat4'])
+        y1 = satellite_data.time_BME_data
+        x1 = satellite_data.temp_data
+        y2 = y1
+        x2 = satellite_data.humidity_data
+        c1.setData(y1, x1)
+        c2.setData(y2, x2)
+    elif tab_index == 4:
+        satellite_data = SatelliteData(sh.satellites_data['luna_sat5'])
+        y1 = satellite_data.time_BME_data
+        x1 = satellite_data.temp_data
+        y2 = y1
+        x2 = satellite_data.humidity_data
+        c1.setData(y1, x1)
+        c2.setData(y2, x2)
+    else:
+        print("Tab index out of range")
 
-    # Set data
-    # BME
-    y1 = satellite_data.time_BME_data
-    x1 = satellite_data.temp_data
-    y2 = y1
-    x2 = satellite_data.humidity_data
-    # c1.setData(y1,x1)
-    # c2.setData(y2,x2)
-    for curve in curves:
-        curve.setData(y1, x1)
-        # if curve == c1:
-        #     curve.setData(y1, x2)
-        # elif curve == c2:
-        #     curve.setData(y2, x2)
+    
 
 def background_task():
     while True:
@@ -309,7 +396,7 @@ def background_task():
 #         time.sleep(1)
 
 if __name__ == '__main__':
-    create_plots(3)
+    create_plots(2)
     
 # if __name__ == "__main__":
 #     # Create a background thread
