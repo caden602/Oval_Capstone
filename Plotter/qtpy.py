@@ -1,13 +1,10 @@
-import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore
 # import pyqtgraph.opengl as gl
 import serial_helper as sh
-import time
 from pyqtgraph.dockarea.Dock import Dock
 from pyqtgraph.dockarea.DockArea import DockArea
 from pyqtgraph.Qt import QtWidgets
-import threading
 
 
 ##################
