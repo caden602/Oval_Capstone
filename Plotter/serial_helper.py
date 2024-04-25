@@ -110,7 +110,7 @@ def read_serial_data():
 
                 if sensor_name == 'BME':
                     try:
-                        time = int(data_points[2])
+                        time = int(data_points[2])/1000
                         temp = float(data_points[3])
                         humidity = float(data_points[4])
                         satellites_data['luna_sat'+luna_sat_num]['time_BME'].append(time)
@@ -121,7 +121,7 @@ def read_serial_data():
                     # return luna_sat_num
                 elif sensor_name == 'ADXL':
                     try:
-                        time = int(data_points[2])
+                        time = int(data_points[2])/1000
                         # time = time_fixer(time, luna_sat_num)
                         accelerometer_x = float(data_points[3])
                         accelerometer_y = float(data_points[4])
@@ -135,7 +135,7 @@ def read_serial_data():
                     # return luna_sat_num
                 elif sensor_name == 'LIS':
                     try:
-                        time = int(data_points[2])
+                        time = int(data_points[2])/1000
                         # time = time_fixer(time, luna_sat_num)
                         magnetometer_x = float(data_points[3])
                         magnetometer_y = float(data_points[4])
