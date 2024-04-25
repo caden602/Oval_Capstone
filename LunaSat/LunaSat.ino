@@ -17,32 +17,31 @@ Adafruit_BME680 bme;
 ADXL313 adxl;
 Adafruit_LIS3MDL lis;
 
-unsigned long myTime;
-
 void setup() {
   Serial.begin(115200); 
   while (!Serial) delay(1);
   delay(1000);
 
-
-   Serial.println("Test");
-
   // Setup ATTiny and disable CS
   pinMode(ATTINY_CS, OUTPUT);
   digitalWrite(ATTINY_CS, HIGH);
+  pinMode(8, OUTPUT);
 
   /* Sensor Setup */
   // Serial.println("Begin Sensor Setup");
 
   /* For LIS3MDL, you only need to set it up once. If you try to set it up again 
      without fulling cutting power to the sensor, you will receive a setup failure. */
+
+
   lis_setup(&lis);
   lis_set_data_rate(&lis, LIS_SAMPLE_RATE);
   
   bme_setup(&bme);
-
+  
   adxl_setup(&adxl);
   adxl_set_data_rate(&adxl, ADXL_SAMPLE_RATE);
+
 
   /* LoRa Setup */
   lora_setup(&rf95, RFM95_RST, true);
@@ -64,6 +63,7 @@ void loop() {
   bme_sample_data(&bme);
   adxl_sample_data(&adxl);
   lis_sample_data(&lis);
+
 
   // Check if we recieved a data request event
   if(get_scheduled_events() & EVENT_DATA_REQUEST){
