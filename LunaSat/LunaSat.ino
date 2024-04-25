@@ -6,8 +6,8 @@
 
 #define ATTINY_CS   6
 
-#define ADXL_SAMPLE_RATE  2
-#define LIS_SAMPLE_RATE   2
+#define ADXL_SAMPLE_RATE  1
+#define LIS_SAMPLE_RATE   1
 
 // Define instance of LoRa (Pass in 'true' for use with LunaSat interrupts)
 RH_RF95 rf95(RFM95_CS, RFM95_INT, true);
@@ -18,9 +18,13 @@ ADXL313 adxl;
 Adafruit_LIS3MDL lis;
 
 void setup() {
+
+  Watchdog.enable(8000);
   Serial.begin(115200); 
   while (!Serial) delay(1);
-  delay(1000);
+  delay(50);
+
+
 
   // Setup ATTiny and disable CS
   pinMode(ATTINY_CS, OUTPUT);
@@ -36,11 +40,17 @@ void setup() {
 
   lis_setup(&lis);
   lis_set_data_rate(&lis, LIS_SAMPLE_RATE);
+
+  Watchdog.reset();
   
   bme_setup(&bme);
+
+  Watchdog.reset();
   
   adxl_setup(&adxl);
   adxl_set_data_rate(&adxl, ADXL_SAMPLE_RATE);
+
+  Watchdog.reset();
 
 
   /* LoRa Setup */
@@ -53,7 +63,10 @@ void setup() {
 
   eeprom_map_pages(1, ADXL_SAMPLE_RATE, LIS_SAMPLE_RATE);
 
-  Serial.println("Setup Good");
+  Serial.print("Setup Good for #");
+  Serial.println(LUNA_SAT_ID);
+
+  Watchdog.disable();
 
   delay(5000);
 }
@@ -67,6 +80,11 @@ void loop() {
 
   // Check if we recieved a data request event
   if(get_scheduled_events() & EVENT_DATA_REQUEST){
+    int countdownMS = Watchdog.enable(15000);
+    Serial.print("Enabled the watchdog with max countdown of ");
+    Serial.print(countdownMS, DEC);
+
+    Serial.println("Rmv Event");
     remove_scheduled_event(EVENT_DATA_REQUEST);
 
     // Serial.print("Sending "); Serial.print(num_pack); Serial.println(" packages");
@@ -182,7 +200,11 @@ void loop() {
 
     send_data(&rf95);
 
+    Serial.println("HERE");
 
+    Watchdog.disable();
+
+    Serial.println("done disbale");
     /*
 
     // Turn off LoRa CS

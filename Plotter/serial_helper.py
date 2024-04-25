@@ -2,7 +2,8 @@ import serial
 
 # Serial config
 baud_rate = 115200  # Change this to match the baud rate of your device 115200
-serial_port = "/dev/tty.usbmodem14201"
+serial_port = "/dev/tty.usbmodem141101"
+serial_port = "/dev/tty.usbserial-14210"
 
 # Initialize the serial connection
 ser = serial.Serial(serial_port, baud_rate)

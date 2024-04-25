@@ -1,12 +1,18 @@
 #include <LunaSat.h>
 
 // Unique identifiers for Luna Sats
-#define NUM_OF_LUNASATS 2
+#define NUM_OF_LUNASATS 4
 
 // Pins for Feather M0
-#define RFM95_CS    8
+// #define RFM95_CS    8
+// #define RFM95_INT   3
+// #define RFM95_RST   4
+
+
+// Pins for LunaSat
+#define RFM95_CS    4
 #define RFM95_INT   3
-#define RFM95_RST   4
+#define RFM95_RST   2  
 
 // Define instance of LoRa (Pass in 'false' for use with BaseStation interrupts)
 RH_RF95 rf95(RFM95_CS, RFM95_INT, false);
@@ -194,7 +200,7 @@ void loop() {
   // Serial.println(lunaSatNum); // Luna Sat #1
 
   char request_packet[13] = "LunaSat #   ";
-  itoa(lunaSatNum, request_packet+9, 3);
+  itoa(lunaSatNum, request_packet+9, 10);
   //Serial.print("Sending "); Serial.println(radiopacket);
 
   delay(10);
@@ -208,7 +214,7 @@ void loop() {
   uint8_t len = sizeof(buf);
 
   // Wait 4 seconds for data reply
-  if (rf95.waitAvailableTimeout(10000)) {
+  if (rf95.waitAvailableTimeout(5000)) {
     // Should be a reply message for us now
 
     int time_offset = 0;

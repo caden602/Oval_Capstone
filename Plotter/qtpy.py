@@ -178,6 +178,8 @@ def update_plot(c1, c2, c3_x, c3_y, c3_z, c4_x, c4_y, c4_z, tab_index):
 
     if tab_index == 0:
         satellite_data = SatelliteData(sh.satellites_data['luna_sat1'])
+
+        # if satellite_data.time_BME_data < 4e9:
         # BME
         y1 = satellite_data.time_BME_data
         x1 = satellite_data.temp_data
@@ -243,15 +245,40 @@ def update_plot(c1, c2, c3_x, c3_y, c3_z, c4_x, c4_y, c4_z, tab_index):
         c3_x.setData(y3,x3_x)
         c3_y.setData(y3,x3_y)
         c3_z.setData(y3,x3_z)
+        # LIS
+        y4  = satellite_data.time_LIS_data
+        x4_x = satellite_data.magnetometer_x_data
+        x4_y = satellite_data.magnetometer_y_data
+        x4_z = satellite_data.magnetometer_z_data
+        c4_x.setData(y4,x4_x)
+        c4_y.setData(y4,x4_y)
+        c4_z.setData(y4,x4_z)
         
     elif tab_index == 3:
         satellite_data = SatelliteData(sh.satellites_data['luna_sat4'])
+        # BME
         y1 = satellite_data.time_BME_data
         x1 = satellite_data.temp_data
+        c1.setData(y1, x1)
         y2 = y1
         x2 = satellite_data.humidity_data
-        c1.setData(y1, x1)
         c2.setData(y2, x2)
+        # ADXL
+        y3   = satellite_data.time_ADXL_data
+        x3_x = satellite_data.accelerometer_x_data
+        x3_y = satellite_data.accelerometer_y_data
+        x3_z = satellite_data.accelerometer_z_data
+        c3_x.setData(y3,x3_x)
+        c3_y.setData(y3,x3_y)
+        c3_z.setData(y3,x3_z)
+        # LIS
+        y4  = satellite_data.time_LIS_data
+        x4_x = satellite_data.magnetometer_x_data
+        x4_y = satellite_data.magnetometer_y_data
+        x4_z = satellite_data.magnetometer_z_data
+        c4_x.setData(y4,x4_x)
+        c4_y.setData(y4,x4_y)
+        c4_z.setData(y4,x4_z)
     elif tab_index == 4:
         satellite_data = SatelliteData(sh.satellites_data['luna_sat5'])
         y1 = satellite_data.time_BME_data
@@ -396,7 +423,7 @@ def background_task():
 #         time.sleep(1)
 
 if __name__ == '__main__':
-    create_plots(2)
+    create_plots(4)
     
 # if __name__ == "__main__":
 #     # Create a background thread
