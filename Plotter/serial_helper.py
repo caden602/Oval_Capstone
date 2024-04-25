@@ -28,6 +28,8 @@ counter1 = 0
 counter2 = 0
 counter3 = 0
 
+luna_sat_num = '1'
+
 satellites_data = {
     'luna_sat1': {'time_BME': [], 'time_ADXL': [], 'time_LIS': [], 'humidity': [], 'temperature': [], 'accelerometer_x': [], 'accelerometer_y': [], 'accelerometer_z': [],
                   'magnetometer_x': [], 'magnetometer_y': [], 'magnetometer_z': []},
@@ -90,45 +92,60 @@ def read_serial_data():
         # Parse sensor data
         if len(data_points) >= 2:
             try:
-                add_unique_lunasat(data_points)
-
+                # try:
+                #     add_unique_lunasat(data_points)
+                # except ValueError:
+                #     print("ADD UNIQUE LUNASAT ERROR")
+                global luna_sat_num
+                
                 sensor_name = data_points[0]
                 luna_sat_num = data_points[1]
 
                 if sensor_name == 'BME':
-                    time = int(data_points[2])
-                    temp = float(data_points[3])
-                    humidity = float(data_points[4])
-                    satellites_data['luna_sat'+luna_sat_num]['time_BME'].append(time)
-                    satellites_data['luna_sat'+luna_sat_num]['temperature'].append(temp)
-                    satellites_data['luna_sat'+luna_sat_num]['humidity'].append(humidity)
-                    return sensor_name
+                    try:
+                        time = int(data_points[2])
+                        temp = float(data_points[3])
+                        humidity = float(data_points[4])
+                        satellites_data['luna_sat'+luna_sat_num]['time_BME'].append(time)
+                        satellites_data['luna_sat'+luna_sat_num]['temperature'].append(temp)
+                        satellites_data['luna_sat'+luna_sat_num]['humidity'].append(humidity)
+                    except ValueError:
+                        print("BME ERROR")
+                    # return luna_sat_num
                 elif sensor_name == 'ADXL':
-                    time = int(data_points[2])
-                    accelerometer_x = float(data_points[3])
-                    accelerometer_y = float(data_points[4])
-                    accelerometer_z = float(data_points[5])
-                    satellites_data['luna_sat'+luna_sat_num]['time_ADXL'].append(time)
-                    satellites_data['luna_sat'+luna_sat_num]['accelerometer_x'].append(accelerometer_x)
-                    satellites_data['luna_sat'+luna_sat_num]['accelerometer_y'].append(accelerometer_y)
-                    satellites_data['luna_sat'+luna_sat_num]['accelerometer_z'].append(accelerometer_z)
-                    return sensor_name
+                    try:
+                        time = int(data_points[2])
+                        # time = time_fixer(time, luna_sat_num)
+                        accelerometer_x = float(data_points[3])
+                        accelerometer_y = float(data_points[4])
+                        accelerometer_z = float(data_points[5])
+                        satellites_data['luna_sat'+luna_sat_num]['time_ADXL'].append(time)
+                        satellites_data['luna_sat'+luna_sat_num]['accelerometer_x'].append(accelerometer_x)
+                        satellites_data['luna_sat'+luna_sat_num]['accelerometer_y'].append(accelerometer_y)
+                        satellites_data['luna_sat'+luna_sat_num]['accelerometer_z'].append(accelerometer_z)
+                    except ValueError:
+                        print("ADXL ERROR")
+                    # return luna_sat_num
                 elif sensor_name == 'LIS':
-                    time = int(data_points[2])
-                    magnetometer_x = float(data_points[3])
-                    magnetometer_y = float(data_points[4])
-                    magnetometer_z = float(data_points[5])
-                    satellites_data['luna_sat'+luna_sat_num]['time_LIS'].append(time)
-                    satellites_data['luna_sat'+luna_sat_num]['magnetometer_x'].append(magnetometer_x)
-                    satellites_data['luna_sat'+luna_sat_num]['magnetometer_y'].append(magnetometer_y)
-                    satellites_data['luna_sat'+luna_sat_num]['magnetometer_z'].append(magnetometer_z)
-                    return sensor_name
+                    try:
+                        time = int(data_points[2])
+                        # time = time_fixer(time, luna_sat_num)
+                        magnetometer_x = float(data_points[3])
+                        magnetometer_y = float(data_points[4])
+                        magnetometer_z = float(data_points[5])
+                        satellites_data['luna_sat'+luna_sat_num]['time_LIS'].append(time)
+                        satellites_data['luna_sat'+luna_sat_num]['magnetometer_x'].append(magnetometer_x)
+                        satellites_data['luna_sat'+luna_sat_num]['magnetometer_y'].append(magnetometer_y)
+                        satellites_data['luna_sat'+luna_sat_num]['magnetometer_z'].append(magnetometer_z)
+                    except ValueError:
+                        print("LIS ERROR")
+                    # return luna_sat_num
                 else:
-                    print("ERROR NO DATA FOUND")
+                    print("ERROR NO SENSOR DATA FOUND")
                     return None
 
             except ValueError:
-                print("Data Empty")
+                print("Data Empty", data_points)
                 return None
         else:
             return None
