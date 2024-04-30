@@ -263,6 +263,6 @@ def update_plot(c1, c2, c3_x, c3_y, c3_z, c4_x, c4_y, c4_z, tab_index):
 
 
 if __name__ == '__main__':
-    user_in = input("Enter desired number of Lunasats: ")
-    create_plots(user_in)
+    #user_in = input("Enter desired number of Lunasats: ")
+    create_plots(4)
     

@@ -72,11 +72,15 @@ void setup() {
 }
 
 void loop() {
+
+  Watchdog.enable(8000);
+  
   // Sample all sensors
   bme_sample_data(&bme);
   adxl_sample_data(&adxl);
   lis_sample_data(&lis);
 
+  Watchdog.disable();
 
   // Check if we recieved a data request event
   if(get_scheduled_events() & EVENT_DATA_REQUEST){

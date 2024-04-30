@@ -4,15 +4,15 @@
 #define NUM_OF_LUNASATS 4
 
 // Pins for Feather M0
-// #define RFM95_CS    8
-// #define RFM95_INT   3
-// #define RFM95_RST   4
+#define RFM95_CS    8
+#define RFM95_INT   3
+#define RFM95_RST   4
 
 
 // Pins for LunaSat
-#define RFM95_CS    4
-#define RFM95_INT   3
-#define RFM95_RST   2  
+// #define RFM95_CS    4
+// #define RFM95_INT   3
+// #define RFM95_RST   2  
 
 // Define instance of LoRa (Pass in 'false' for use with BaseStation interrupts)
 RH_RF95 rf95(RFM95_CS, RFM95_INT, false);
